@@ -70,8 +70,8 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
             <iframe
               src={playerUrl}
               className="absolute inset-0 w-full h-full border-none z-10"
-              allowFullScreen
-              allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+              allow="autoplay; fullscreen; picture-in-picture; encrypted-media; gyroscope; accelerometer; clipboard-write"
+              referrerPolicy="no-referrer"
             />
           </div>
         )}
@@ -85,8 +85,8 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
 
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-4 rounded-3xl bg-card border border-white/5">
         <p className="text-xs text-muted-foreground font-medium text-center md:text-left">
-          Se o player acima mostrar erro de "Sandbox", é uma restrição do ambiente de visualização. <br className="hidden md:block" />
-          Nesse caso, clique no botão ao lado para assistir sem bloqueios.
+          Se o player ainda mostrar erro de "Sandbox", é devido às restrições do ambiente de visualização do Studio. <br className="hidden md:block" />
+          Nesse caso, use o botão ao lado para assistir em uma aba limpa.
         </p>
         <Button 
           onClick={() => window.open(playerUrl, '_blank')}
