@@ -24,6 +24,8 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
         frameBorder="0"
         scrolling="no"
         title={`Assistir ${title}`}
+        sandbox="allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-top-navigation"
+        allow="autoplay; encrypted-media; picture-in-picture"
       />
       
       {/* Overlay discreto de carregamento/identificação */}
