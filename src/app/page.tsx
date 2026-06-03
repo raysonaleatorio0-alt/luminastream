@@ -1,6 +1,5 @@
 import Navbar from "@/components/lumina/Navbar";
 import Hero from "@/components/lumina/Hero";
-import MoodDiscovery from "@/components/lumina/MoodDiscovery";
 import MediaCard from "@/components/lumina/MediaCard";
 import { getTrending, type Media } from "@/lib/tmdb";
 
@@ -20,9 +19,7 @@ export default async function Home() {
       
       {heroMovie && <Hero movie={heroMovie} />}
       
-      <MoodDiscovery />
-
-      <main className="px-6 md:px-12 pb-24 space-y-20 max-w-7xl mx-auto">
+      <main className="px-6 md:px-12 py-24 space-y-20 max-w-7xl mx-auto">
         {categories.map((cat) => {
           const items = trending.filter(i => i.media_type === cat.type || !i.media_type).slice(1, 11);
           return (
