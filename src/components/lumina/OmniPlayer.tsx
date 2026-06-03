@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Play, Loader2, ExternalLink } from "lucide-react";
+import { Play, Loader2, ExternalLink, AlertCircle } from "lucide-react";
 import { getImageUrl } from "@/lib/tmdb";
 
 interface OmniPlayerProps {
@@ -24,6 +24,7 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
 
   if (!mounted) return null;
   
+  // Seguindo exatamente o padrão solicitado pelo usuário
   const playerUrl = type === "movie" 
     ? `https://mgeb.top/embed/${tmdbId}`
     : `https://mgeb.top/embed/${tmdbId}/${season}/${episode}`;
@@ -33,7 +34,6 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
       <div className="relative aspect-video w-full bg-black rounded-3xl overflow-hidden group shadow-2xl shadow-primary/10 border border-white/5">
         {!isPlaying ? (
           <>
-            {/* Capa de Pré-carregamento */}
             <div className="absolute inset-0">
               <img
                 src={getImageUrl(backdropPath || "", 'original')}
@@ -43,7 +43,6 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
               <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
             </div>
             
-            {/* Botão de Play Central */}
             <div className="absolute inset-0 flex flex-col items-center justify-center space-y-6 p-6 text-center">
               <button 
                 onClick={() => setIsPlaying(true)}
@@ -64,23 +63,23 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
             </div>
           </>
         ) : (
-          /* Player Real com sandbox ultra-permissivo */
           <div className="w-full h-full bg-black relative">
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <Loader2 className="animate-spin text-primary/20" size={48} />
             </div>
             <iframe
+              key={playerUrl}
               src={playerUrl}
               className="relative z-10 w-full h-full border-none"
               allowFullScreen
-              // O atributo sandbox abaixo é o mais permissivo possível para evitar a mensagem de "restrições estritas"
-              sandbox="allow-forms allow-modals allow-orientation-lock allow-pointer-lock allow-popups allow-popups-to-escape-sandbox allow-presentation allow-same-origin allow-scripts allow-top-navigation allow-top-navigation-by-user-activation"
+              // Removido o atributo sandbox para evitar a mensagem de "restrições estritas"
+              // Adicionado referrerPolicy para garantir que o player receba o contexto necessário
+              referrerPolicy="no-referrer"
               allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
             />
           </div>
         )}
 
-        {/* Badge Inferior */}
         <div className="absolute bottom-6 left-6 pointer-events-none z-20">
           <div className="px-3 py-1 bg-black/60 backdrop-blur-md rounded-lg border border-white/10 text-[10px] font-bold tracking-widest text-primary uppercase">
             MegaEmbed Player • {type === 'movie' ? 'VOD' : `S${season}:E${episode}`}
@@ -88,17 +87,20 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
         </div>
       </div>
 
-      {/* Link de contingência se o player ainda falhar no ambiente de preview */}
       {isPlaying && (
-        <div className="flex justify-center">
+        <div className="flex flex-col items-center gap-2">
+          <div className="flex items-center gap-2 text-[10px] text-muted-foreground bg-white/5 px-3 py-1 rounded-full border border-white/5">
+            <AlertCircle size={10} className="text-secondary" />
+            <span>Dica: Se o player não carregar, pode ser necessário desativar o bloqueador de anúncios ou proteção contra rastreamento.</span>
+          </div>
           <a 
             href={playerUrl} 
             target="_blank" 
             rel="noopener noreferrer"
-            className="text-xs text-muted-foreground hover:text-primary flex items-center gap-1 transition-colors"
+            className="text-xs text-primary hover:underline flex items-center gap-1 transition-all"
           >
             <ExternalLink size={12} />
-            Problemas com o player interno? Abrir em nova aba
+            Abrir player em tela cheia (aba externa)
           </a>
         </div>
       )}
