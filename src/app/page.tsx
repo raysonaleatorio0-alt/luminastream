@@ -10,8 +10,8 @@ export default async function Home() {
   const heroMovie = trending[0];
 
   const categories = [
-    { title: "Top Rated Movies", type: "movie" as const },
-    { title: "Trending Series", type: "tv" as const },
+    { title: "Filmes Mais Votados", type: "movie" as const },
+    { title: "Séries em Alta", type: "tv" as const },
   ];
 
   return (
@@ -30,10 +30,10 @@ export default async function Home() {
               <div className="flex items-end justify-between">
                 <div>
                   <h2 className="text-3xl font-headline font-bold">{cat.title}</h2>
-                  <p className="text-muted-foreground mt-2">Handpicked selection of the finest content.</p>
+                  <p className="text-muted-foreground mt-2">Seleção escolhida a dedo do melhor conteúdo.</p>
                 </div>
                 <button className="text-primary font-bold text-sm hover:underline underline-offset-4">
-                  View All
+                  Ver Tudo
                 </button>
               </div>
 
@@ -45,7 +45,7 @@ export default async function Home() {
                     title={item.title || item.name || ""}
                     posterPath={item.poster_path}
                     rating={item.vote_average}
-                    type={cat.type}
+                    type={cat.type === 'tv' ? 'tv' : 'movie'}
                   />
                 ))}
               </div>
@@ -63,13 +63,13 @@ export default async function Home() {
             <span className="font-headline font-bold text-xl">LuminaStream</span>
           </div>
           <div className="flex gap-8 text-sm text-muted-foreground font-medium">
-            <a href="#" className="hover:text-primary transition-colors">Privacy</a>
-            <a href="#" className="hover:text-primary transition-colors">Terms</a>
-            <a href="#" className="hover:text-primary transition-colors">Support</a>
-            <a href="#" className="hover:text-primary transition-colors">Contact</a>
+            <a href="#" className="hover:text-primary transition-colors">Privacidade</a>
+            <a href="#" className="hover:text-primary transition-colors">Termos</a>
+            <a href="#" className="hover:text-primary transition-colors">Suporte</a>
+            <a href="#" className="hover:text-primary transition-colors">Contato</a>
           </div>
           <p className="text-xs text-muted-foreground font-medium">
-            © 2024 LuminaStream. Experience cinematic magic.
+            © 2024 LuminaStream. Sinta a magia do cinema.
           </p>
         </div>
       </footer>

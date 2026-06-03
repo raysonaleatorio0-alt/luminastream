@@ -32,14 +32,14 @@ export default function MoodDiscovery() {
           <div className="space-y-4">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary">
               <Sparkles size={16} />
-              <span className="text-sm font-bold tracking-tight uppercase">AI Discovery</span>
+              <span className="text-sm font-bold tracking-tight uppercase">IA Discovery</span>
             </div>
             <h2 className="text-5xl md:text-6xl font-headline font-bold leading-none">
-              How are you <br />
-              <span className="text-primary">feeling</span> today?
+              Como você está <br />
+              <span className="text-primary">se sentindo</span> hoje?
             </h2>
             <p className="text-xl text-muted-foreground max-w-lg">
-              Our Intelligent Discovery Tool analyzes your mood to find the perfect cinematic match.
+              Nossa ferramenta inteligente analisa seu humor para encontrar a combinação cinematográfica perfeita.
             </p>
           </div>
 
@@ -47,7 +47,7 @@ export default function MoodDiscovery() {
             <div className="absolute -inset-1 bg-gradient-to-r from-primary to-secondary rounded-2xl blur opacity-25 group-focus-within:opacity-75 transition duration-1000"></div>
             <div className="relative bg-card border border-white/10 rounded-2xl p-4 space-y-4">
               <Textarea
-                placeholder="I want something dark, atmospheric and thought-provoking... maybe a sci-fi thriller."
+                placeholder="Quero algo sombrio, atmosférico e que me faça pensar... talvez um thriller de ficção científica."
                 className="bg-transparent border-none resize-none text-lg min-h-[120px] focus-visible:ring-0 p-0"
                 value={mood}
                 onChange={(e) => setMood(e.target.value)}
@@ -62,7 +62,7 @@ export default function MoodDiscovery() {
                     <Loader2 className="animate-spin" />
                   ) : (
                     <>
-                      Discover Matches
+                      Descobrir Conteúdos
                       <ArrowRight size={18} className="ml-2 group-hover:translate-x-1 transition-transform" />
                     </>
                   )}
@@ -82,7 +82,7 @@ export default function MoodDiscovery() {
                     title={item.title}
                     posterPath={item.posterPath || ""}
                     rating={item.voteAverage}
-                    type={item.type}
+                    type={item.type === 'movie' ? 'movie' : 'tv'}
                   />
                 </div>
               ))}
@@ -93,8 +93,8 @@ export default function MoodDiscovery() {
                 <Sparkles size={32} />
               </div>
               <div>
-                <h4 className="font-headline font-bold text-lg">Awaiting Input</h4>
-                <p className="text-sm text-muted-foreground">Tell us your mood to generate personalized recommendations.</p>
+                <h4 className="font-headline font-bold text-lg">Aguardando Input</h4>
+                <p className="text-sm text-muted-foreground">Conte-nos seu humor para gerar recomendações personalizadas.</p>
               </div>
             </div>
           )}

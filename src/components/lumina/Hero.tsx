@@ -28,10 +28,10 @@ export default function Hero({ movie }: HeroProps) {
         <div className="max-w-2xl space-y-6 animate-in fade-in slide-in-from-left-8 duration-1000">
           <div className="flex items-center gap-3">
             <span className="px-3 py-1 bg-primary/20 border border-primary/30 rounded-full text-xs font-bold text-primary tracking-widest uppercase">
-              Trending Now
+              Em Alta Hoje
             </span>
             <div className="flex items-center gap-1 text-sm font-medium text-muted-foreground">
-              <span className="text-secondary font-bold">{movie.vote_average.toFixed(1)}</span> Rating
+              Avaliação <span className="text-secondary font-bold">{movie.vote_average.toFixed(1)}</span>
             </div>
           </div>
           
@@ -47,12 +47,12 @@ export default function Hero({ movie }: HeroProps) {
             <Link href={`/watch/movie/${movie.id}`}>
               <Button size="lg" className="h-14 px-8 rounded-2xl bg-primary text-primary-foreground font-bold shadow-2xl shadow-primary/20 hover:scale-105 transition-transform group">
                 <Play className="mr-2 fill-primary-foreground" size={20} />
-                Watch Now
+                Assistir Agora
               </Button>
             </Link>
             <Button variant="outline" size="lg" className="h-14 px-8 rounded-2xl border-white/10 bg-white/5 backdrop-blur-md hover:bg-white/10 hover:border-white/20 font-bold transition-all">
               <Plus className="mr-2" size={20} />
-              Add to Queue
+              Adicionar à Lista
             </Button>
             <Button variant="ghost" size="icon" className="h-14 w-14 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10">
               <Info size={24} />

@@ -36,7 +36,7 @@ export default function MediaCard({ id, title, posterPath, rating, type, classNa
               <span className="text-xs font-bold text-primary-foreground">{rating.toFixed(1)}</span>
             </div>
             <span className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground bg-white/10 px-2 py-0.5 rounded-lg border border-white/5">
-              {type === 'movie' ? 'Movie' : 'Series'}
+              {type === 'movie' ? 'Filme' : 'Série'}
             </span>
           </div>
           <h3 className="font-headline font-bold text-lg line-clamp-2 leading-tight">

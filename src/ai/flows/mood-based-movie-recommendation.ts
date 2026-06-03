@@ -1,10 +1,8 @@
 'use server';
 /**
- * @fileOverview A Genkit flow for recommending movies or series based on a user's mood or preferences.
+ * @fileOverview Um fluxo Genkit para recomendar filmes ou séries baseados no humor ou preferências do usuário.
  *
- * - moodBasedMovieRecommendation - A function that handles the mood-based recommendation process.
- * - MoodBasedMovieRecommendationInput - The input type for the moodBasedMovieRecommendation function.
- * - MoodBasedMovieRecommendationOutput - The return type for the moodBasedMovieRecommendation function.
+ * - moodBasedMovieRecommendation - Função que lida com o processo de recomendação baseado no humor.
  */
 
 import { ai } from '@/ai/genkit';
@@ -15,19 +13,19 @@ const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 const TMDB_IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
 
 const MoodBasedRecommendationInputSchema = z.object({
-  moodDescription: z.string().describe("A description of the user's current mood or preferences for content."),
+  moodDescription: z.string().describe("Uma descrição do humor atual do usuário ou preferências de conteúdo."),
 });
 export type MoodBasedMovieRecommendationInput = z.infer<typeof MoodBasedRecommendationInputSchema>;
 
 const TmdbDetailsOutputSchema = z.object({
-  title: z.string().describe('The title of the movie or series.'),
-  type: z.enum(['movie', 'series']).describe('Whether the content is a movie or a series.'),
-  overview: z.string().describe('A brief synopsis or overview of the content.'),
-  releaseDate: z.string().optional().describe('The release date for movies.'),
-  firstAirDate: z.string().optional().describe('The first air date for series.'),
-  posterPath: z.string().optional().describe('The path to the poster image on TMDB.'),
-  voteAverage: z.number().describe('The average vote score from TMDB.'),
-  id: z.number().describe('The TMDB ID of the content.'),
+  title: z.string().describe('O título do filme ou série.'),
+  type: z.enum(['movie', 'series']).describe('Se o conteúdo é um filme ou uma série.'),
+  overview: z.string().describe('Uma breve sinopse ou visão geral do conteúdo.'),
+  releaseDate: z.string().optional().describe('A data de lançamento para filmes.'),
+  firstAirDate: z.string().optional().describe('A primeira data de exibição para séries.'),
+  posterPath: z.string().optional().describe('O caminho para o poster no TMDB.'),
+  voteAverage: z.number().describe('A média de votos do TMDB.'),
+  id: z.number().describe('O ID do TMDB do conteúdo.'),
 });
 
 const MoodBasedMovieRecommendationOutputSchema = z.array(TmdbDetailsOutputSchema);
@@ -36,21 +34,20 @@ export type MoodBasedMovieRecommendationOutput = z.infer<typeof MoodBasedMovieRe
 const getTmdbDetails = ai.defineTool(
   {
     name: 'getTmdbDetails',
-    description: 'Searches TMDB for movie or series details based on title and type.',
+    description: 'Busca detalhes de filmes ou séries no TMDB com base no título e tipo.',
     inputSchema: z.object({
-      query: z.string().describe('The title of the movie or series to search for.'),
-      type: z.enum(['movie', 'series']).describe('The type of content to search for (movie or series).'),
+      query: z.string().describe('O título do filme ou série para buscar.'),
+      type: z.enum(['movie', 'series']).describe('O tipo de conteúdo para buscar (filme ou série).'),
     }),
     outputSchema: TmdbDetailsOutputSchema.nullable(),
   },
   async ({ query, type }) => {
     const mediaType = type === 'movie' ? 'movie' : 'tv';
-    const searchUrl = `${TMDB_BASE_URL}/search/multi?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`;
+    const searchUrl = `${TMDB_BASE_URL}/search/multi?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&language=pt-BR`;
 
     try {
       const response = await fetch(searchUrl);
       if (!response.ok) {
-        console.error(`TMDB search failed: ${response.statusText}`);
         return null;
       }
       const data = await response.json();
@@ -75,7 +72,6 @@ const getTmdbDetails = ai.defineTool(
       }
       return null;
     } catch (error) {
-      console.error('Error fetching TMDB details:', error);
       return null;
     }
   }
@@ -85,16 +81,16 @@ const moodBasedRecommendationPrompt = ai.definePrompt({
   name: 'moodBasedRecommendationPrompt',
   input: { schema: MoodBasedRecommendationInputSchema },
   output: { schema: z.array(z.object({ title: z.string(), type: z.enum(['movie', 'series']) })) },
-  prompt: `Based on the user's mood and preferences described as: "{{{moodDescription}}}", please suggest a list of 3-5 distinct movies or series that would be a good fit.
+  prompt: `Com base no humor e nas preferências do usuário descritos como: "{{{moodDescription}}}", sugira uma lista de 3 a 5 filmes ou séries distintos que seriam uma boa opção.
 
-For each suggestion, provide only the title and specify whether it is a 'movie' or a 'series'.
+Para cada sugestão, forneça apenas o título (em português se disponível) e especifique se é um 'movie' ou uma 'series'.
 
-The output should be a JSON array of objects, where each object has two keys: 'title' (string) and 'type' (string, either 'movie' or 'series').
+A saída deve ser um array JSON de objetos, onde cada objeto tem duas chaves: 'title' (string) e 'type' (string, 'movie' ou 'series').
 
-Example:
+Exemplo:
 [
   {
-    "title": "The Shawshank Redemption",
+    "title": "Um Sonho de Liberdade",
     "type": "movie"
   },
   {
@@ -115,7 +111,7 @@ const moodBasedMovieRecommendationFlow = ai.defineFlow(
     name: 'moodBasedMovieRecommendationFlow',
     inputSchema: MoodBasedRecommendationInputSchema,
     outputSchema: MoodBasedMovieRecommendationOutputSchema,
-    tools: [getTmdbDetails], // Register the tool to be available for use
+    tools: [getTmdbDetails],
   },
   async (input) => {
     const { output: rawSuggestions } = await moodBasedRecommendationPrompt(input);

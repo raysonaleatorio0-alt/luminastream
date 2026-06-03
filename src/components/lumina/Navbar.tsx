@@ -9,10 +9,10 @@ export default function Navbar() {
   const pathname = usePathname();
 
   const navItems = [
-    { name: "Discover", href: "/", icon: Sparkles },
-    { name: "Movies", href: "/movies", icon: Film },
-    { name: "Series", href: "/series", icon: Tv },
-    { name: "Watchlist", href: "/watchlist", icon: Bookmark },
+    { name: "Descobrir", href: "/", icon: Sparkles },
+    { name: "Filmes", href: "/movies", icon: Film },
+    { name: "Séries", href: "/series", icon: Tv },
+    { name: "Minha Lista", href: "/watchlist", icon: Bookmark },
   ];
 
   return (
@@ -55,7 +55,7 @@ export default function Navbar() {
           <Search size={20} />
         </button>
         <div className="w-10 h-10 rounded-full border border-white/10 overflow-hidden cursor-pointer hover:border-primary transition-colors">
-          <img src="https://picsum.photos/seed/user/100/100" alt="Profile" className="w-full h-full object-cover" />
+          <img src="https://picsum.photos/seed/user/100/100" alt="Perfil" className="w-full h-full object-cover" />
         </div>
       </div>
     </nav>

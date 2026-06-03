@@ -44,7 +44,7 @@ export default function OmniPlayer({ title, sourceType = "HLS Stream" }: OmniPla
            </div>
            <div className="space-y-1">
              <p className="text-sm font-bold tracking-widest text-primary uppercase">Omni-Player Buffering</p>
-             <p className="text-xs text-muted-foreground uppercase tracking-widest">Master .txt Manifest: {sourceType}</p>
+             <p className="text-xs text-muted-foreground uppercase tracking-widest">Manifesto Master .txt: {sourceType}</p>
            </div>
         </div>
       </div>
@@ -57,10 +57,10 @@ export default function OmniPlayer({ title, sourceType = "HLS Stream" }: OmniPla
         {/* Top Controls */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-             <div className="px-3 py-1 bg-primary rounded-lg text-xs font-bold text-primary-foreground">LIVE</div>
+             <div className="px-3 py-1 bg-primary rounded-lg text-xs font-bold text-primary-foreground">AO VIVO</div>
              <div>
                <h3 className="font-headline font-bold text-lg leading-none">{title}</h3>
-               <p className="text-xs text-muted-foreground mt-1">Universal Stream • 4K ULTRA HD</p>
+               <p className="text-xs text-muted-foreground mt-1">Stream Universal • 4K ULTRA HD</p>
              </div>
           </div>
           <div className="flex items-center gap-3">
