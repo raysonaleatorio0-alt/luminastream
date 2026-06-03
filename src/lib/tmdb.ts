@@ -15,14 +15,20 @@ export type Media = {
 };
 
 export async function getTrending(type: 'all' | 'movie' | 'tv' = 'all') {
-  const res = await fetch(`${TMDB_BASE_URL}/trending/${type}/day?api_key=${TMDB_API_KEY}`);
+  const res = await fetch(`${TMDB_BASE_URL}/trending/${type}/day?api_key=${TMDB_API_KEY}&language=pt-BR`);
   if (!res.ok) return { results: [] };
   return res.json();
 }
 
 export async function getMediaDetails(id: string | number, type: 'movie' | 'tv') {
-  const res = await fetch(`${TMDB_BASE_URL}/${type}/${id}?api_key=${TMDB_API_KEY}&append_to_response=credits,recommendations`);
+  const res = await fetch(`${TMDB_BASE_URL}/${type}/${id}?api_key=${TMDB_API_KEY}&append_to_response=credits,recommendations&language=pt-BR`);
   if (!res.ok) return null;
+  return res.json();
+}
+
+export async function searchMedia(query: string) {
+  const res = await fetch(`${TMDB_BASE_URL}/search/multi?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&language=pt-BR`);
+  if (!res.ok) return { results: [] };
   return res.json();
 }
 
