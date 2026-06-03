@@ -2,19 +2,29 @@ import { getMediaDetails, getImageUrl } from "@/lib/tmdb";
 import Navbar from "@/components/lumina/Navbar";
 import OmniPlayer from "@/components/lumina/OmniPlayer";
 import MediaCard from "@/components/lumina/MediaCard";
-import { Star, Calendar, Clock, Bookmark, Share2 } from "lucide-react";
+import { Star, Calendar, Clock, Bookmark, Share2, Play } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 interface PageProps {
   params: Promise<{
     type: "movie" | "tv";
     id: string;
   }>;
+  searchParams: Promise<{
+    s?: string;
+    e?: string;
+  }>;
 }
 
-export default async function WatchPage({ params }: PageProps) {
+export default async function WatchPage({ params, searchParams }: PageProps) {
   const { type, id } = await params;
+  const { s, e } = await searchParams;
+  
+  const season = parseInt(s || "1");
+  const episode = parseInt(e || "1");
+  
   const data = await getMediaDetails(id, type);
 
   if (!data) return <div className="min-h-screen flex items-center justify-center">Conteúdo não encontrado</div>;
@@ -32,13 +42,19 @@ export default async function WatchPage({ params }: PageProps) {
       <div className="pt-28 px-6 md:px-12 max-w-7xl mx-auto space-y-12">
         {/* Player Section */}
         <div className="space-y-6">
-          <OmniPlayer title={title} sourceType={type === 'movie' ? 'VOD Master.txt' : 'Playlist de Episódios'} />
+          <OmniPlayer 
+            tmdbId={id} 
+            type={type} 
+            season={season} 
+            episode={episode} 
+            title={title} 
+          />
           
           <div className="flex flex-col md:flex-row justify-between gap-8 py-6">
             <div className="space-y-4 flex-1">
               <div className="flex flex-wrap items-center gap-3">
                 <Badge variant="secondary" className="bg-primary/20 text-primary border-none font-bold uppercase tracking-wider px-3 py-1">
-                  {type === 'movie' ? 'Longa-Metragem' : 'Série de TV'}
+                  {type === 'movie' ? 'Longa-Metragem' : `Série • T${season} E${episode}`}
                 </Badge>
                 {data.genres?.map((g: any) => (
                   <Badge key={g.id} variant="outline" className="border-white/10 text-muted-foreground hover:bg-white/5 cursor-default">
@@ -84,6 +100,50 @@ export default async function WatchPage({ params }: PageProps) {
           </div>
         </div>
 
+        {/* Episode/Season Selector if TV */}
+        {type === 'tv' && data.seasons && (
+          <section className="space-y-6">
+            <h3 className="text-2xl font-headline font-bold">Temporadas</h3>
+            <div className="flex flex-wrap gap-3">
+              {data.seasons.map((s: any) => (
+                <Link key={s.id} href={`/watch/tv/${id}?s=${s.season_number}&e=1`}>
+                  <Button 
+                    variant={season === s.season_number ? "default" : "outline"}
+                    className={cn(
+                      "rounded-xl font-bold",
+                      season === s.season_number && "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+                    )}
+                  >
+                    T{s.season_number}
+                  </Button>
+                </Link>
+              ))}
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {Array.from({ length: data.seasons.find((s: any) => s.season_number === season)?.episode_count || 0 }).map((_, idx) => {
+                const epNum = idx + 1;
+                return (
+                  <Link key={idx} href={`/watch/tv/${id}?s=${season}&e=${epNum}`}>
+                    <div className={cn(
+                      "p-4 rounded-2xl border transition-all flex items-center justify-between group",
+                      episode === epNum 
+                        ? "bg-primary/10 border-primary text-primary" 
+                        : "bg-card border-white/5 hover:border-white/20"
+                    )}>
+                      <span className="font-bold">Episódio {epNum}</span>
+                      <Play size={16} className={cn(
+                        "transition-transform group-hover:scale-125",
+                        episode === epNum ? "fill-primary" : "text-muted-foreground"
+                      )} />
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
         {/* Details Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
           {/* Cast */}
@@ -117,12 +177,14 @@ export default async function WatchPage({ params }: PageProps) {
                     <p className="text-muted-foreground uppercase text-[10px] tracking-widest font-bold">Status</p>
                     <p className="font-medium">{data.status === 'Released' ? 'Lançado' : data.status}</p>
                  </div>
+                 {data.budget > 0 && (
+                   <div>
+                      <p className="text-muted-foreground uppercase text-[10px] tracking-widest font-bold">Orçamento</p>
+                      <p className="font-medium">${(data.budget).toLocaleString()}</p>
+                   </div>
+                 )}
                  <div>
-                    <p className="text-muted-foreground uppercase text-[10px] tracking-widest font-bold">Orçamento</p>
-                    <p className="font-medium">${(data.budget || 0).toLocaleString()}</p>
-                 </div>
-                 <div>
-                    <p className="text-muted-foreground uppercase text-[10px] tracking-widest font-bold">Idioma</p>
+                    <p className="text-muted-foreground uppercase text-[10px] tracking-widest font-bold">Idioma Original</p>
                     <p className="font-medium uppercase">{data.original_language}</p>
                  </div>
               </div>
