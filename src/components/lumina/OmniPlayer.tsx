@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -56,7 +55,7 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
           </div>
         </>
       ) : (
-        /* Player Real */
+        /* Player Real - Removido o sandbox para evitar bloqueio de APIs do MegaEmbed */
         <div className="w-full h-full bg-black flex items-center justify-center">
           <Loader2 className="absolute animate-spin text-primary/20" size={48} />
           <iframe
@@ -64,8 +63,6 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
             className="relative z-10 w-full h-full border-none"
             allowFullScreen
             allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-            // O sandbox é necessário mas precisa ser permissivo o suficiente
-            sandbox="allow-forms allow-modals allow-popups allow-scripts allow-same-origin allow-top-navigation-by-user-activation"
           />
         </div>
       )}
