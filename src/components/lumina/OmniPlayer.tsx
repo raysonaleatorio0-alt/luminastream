@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Play, Loader2, ExternalLink, AlertCircle, Maximize2 } from "lucide-react";
+import { Play, Loader2, Maximize2, ExternalLink } from "lucide-react";
 import { getImageUrl } from "@/lib/tmdb";
 import { Button } from "@/components/ui/button";
 
@@ -29,10 +29,6 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
     ? `https://mgeb.top/embed/${tmdbId}`
     : `https://mgeb.top/embed/${tmdbId}/${season}/${episode}`;
 
-  const handleOpenExternal = () => {
-    window.open(playerUrl, '_blank', 'noopener,noreferrer');
-  };
-
   return (
     <div className="space-y-6">
       <div className="relative aspect-video w-full bg-black rounded-[2.5rem] overflow-hidden group shadow-2xl shadow-primary/20 border border-white/5">
@@ -58,59 +54,47 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
               
               <div className="space-y-2">
                 <h2 className="text-3xl font-headline font-bold text-white drop-shadow-lg">
-                  Pronto para o show?
+                  {title}
                 </h2>
                 <p className="text-muted-foreground font-medium bg-black/40 backdrop-blur-md px-4 py-1.5 rounded-full inline-block">
-                  {type === 'movie' ? 'Filme completo' : `Série • Temporada ${season}, Episódio ${episode}`}
+                  {type === 'movie' ? 'Filme Completo' : `Série • T${season} E${episode}`}
                 </p>
               </div>
             </div>
           </>
         ) : (
           <div className="w-full h-full bg-black relative">
-            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-0">
-              <Loader2 className="animate-spin text-primary/40 mb-4" size={48} />
-              <p className="text-muted-foreground text-sm">Carregando player...</p>
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+              <Loader2 className="animate-spin text-primary/40" size={48} />
             </div>
             <iframe
-              key={playerUrl}
               src={playerUrl}
-              className="relative z-10 w-full h-full border-none"
+              className="absolute inset-0 w-full h-full border-none z-10"
               allowFullScreen
-              referrerPolicy="no-referrer"
-              allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+              allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
             />
           </div>
         )}
 
         <div className="absolute bottom-6 left-6 pointer-events-none z-20">
           <div className="px-4 py-1.5 bg-black/60 backdrop-blur-md rounded-xl border border-white/10 text-[10px] font-bold tracking-[0.2em] text-primary uppercase">
-            MegaEmbed V3 • Estreia
+            Player Lumina v3
           </div>
         </div>
       </div>
 
-      {/* Opções de Resgate caso o Sandbox bloqueie */}
-      <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-6 rounded-3xl bg-card border border-white/5">
-        <div className="flex items-start gap-4">
-          <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center text-secondary flex-shrink-0 mt-1">
-            <AlertCircle size={20} />
-          </div>
-          <div className="space-y-1">
-            <h4 className="font-bold text-sm">Problemas com o carregamento?</h4>
-            <p className="text-xs text-muted-foreground leading-relaxed max-w-md">
-              Alguns navegadores bloqueiam o player por segurança (Sandbox). Se o vídeo não aparecer, use o botão ao lado para abrir em uma janela dedicada sem restrições.
-            </p>
-          </div>
-        </div>
-        
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-4 rounded-3xl bg-card border border-white/5">
+        <p className="text-xs text-muted-foreground font-medium text-center md:text-left">
+          Se o player acima mostrar erro de "Sandbox", é uma restrição do ambiente de visualização. <br className="hidden md:block" />
+          Nesse caso, clique no botão ao lado para assistir sem bloqueios.
+        </p>
         <Button 
-          onClick={handleOpenExternal}
+          onClick={() => window.open(playerUrl, '_blank')}
           variant="secondary"
-          className="w-full md:w-auto h-12 px-6 rounded-xl font-bold shadow-lg shadow-secondary/10 group"
+          className="h-12 px-6 rounded-xl font-bold shadow-lg shadow-secondary/10 shrink-0"
         >
-          <Maximize2 className="mr-2 group-hover:scale-110 transition-transform" size={18} />
-          Abrir em Tela Cheia
+          <Maximize2 className="mr-2" size={18} />
+          Abrir em Nova Aba
           <ExternalLink className="ml-2 opacity-50" size={14} />
         </Button>
       </div>
