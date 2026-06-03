@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Play, Loader2 } from "lucide-react";
 import { getImageUrl } from "@/lib/tmdb";
 
@@ -15,6 +16,13 @@ interface OmniPlayerProps {
 
 export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, title, backdropPath }: OmniPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
   
   const playerUrl = type === "movie" 
     ? `https://mgeb.top/embed/${tmdbId}`
@@ -55,14 +63,19 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
           </div>
         </>
       ) : (
-        /* Player Real - Removido o sandbox para evitar bloqueio de APIs do MegaEmbed */
-        <div className="w-full h-full bg-black flex items-center justify-center">
-          <Loader2 className="absolute animate-spin text-primary/20" size={48} />
+        /* Player Real com permissões explícitas */
+        <div className="w-full h-full bg-black relative">
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <Loader2 className="animate-spin text-primary/20" size={48} />
+          </div>
           <iframe
             src={playerUrl}
             className="relative z-10 w-full h-full border-none"
             allowFullScreen
+            // Definindo permissões completas. 'allow-same-origin' é crucial para que o script do player não se sinta "preso".
+            sandbox="allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-top-navigation allow-presentation"
             allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+            referrerPolicy="origin"
           />
         </div>
       )}
