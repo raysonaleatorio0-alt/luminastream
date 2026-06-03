@@ -1,3 +1,4 @@
+
 import { getMediaDetails, getImageUrl } from "@/lib/tmdb";
 import Navbar from "@/components/lumina/Navbar";
 import OmniPlayer from "@/components/lumina/OmniPlayer";
@@ -49,6 +50,7 @@ export default async function WatchPage({ params, searchParams }: PageProps) {
             season={season} 
             episode={episode} 
             title={title} 
+            backdropPath={data.backdrop_path}
           />
           
           <div className="flex flex-col md:flex-row justify-between gap-8 py-6">
