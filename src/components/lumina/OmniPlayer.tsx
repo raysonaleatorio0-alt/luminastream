@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { Play, Loader2, Maximize2, ExternalLink } from "lucide-react";
-import { getImageUrl } from "@/lib/tmdb";
+import { getImageUrl, getMediaDetails } from "@/lib/tmdb";
 import { Button } from "@/components/ui/button";
 
 interface OmniPlayerProps {
@@ -19,20 +19,68 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
   const [isPlaying, setIsPlaying] = useState(false);
   const [mounted, setMounted] = useState(false);
 
+  // States for skip button logic
+  const [episodeRuntimeSec, setEpisodeRuntimeSec] = useState<number | null>(null);
+  const [startTs, setStartTs] = useState<number | null>(null);
+  const [showSkip, setShowSkip] = useState(false);
+  const [skipCountdown, setSkipCountdown] = useState<number>(0);
+  const [seasonEpisodeCount, setSeasonEpisodeCount] = useState<number | null>(null);
+
   useEffect(() => {
     setMounted(true);
   }, []);
-
+  
   // Reset player when episode or season changes
   useEffect(() => {
     setIsPlaying(false);
+    setStartTs(null);
+    setShowSkip(false);
+    setSkipCountdown(0);
   }, [season, episode]);
 
-  if (!mounted) return null;
-  
   const playerUrl = type === "movie" 
     ? `https://mgeb.top/embed/${tmdbId}`
     : `https://mgeb.top/embed/${tmdbId}/${season}/${episode}`;
+
+  // Fetch runtime and season info for TV shows
+  useEffect(() => {
+    let mountedFetch = true;
+    async function loadDetails() {
+      if (type === 'tv') {
+        try {
+          const data: any = await getMediaDetails(tmdbId, 'tv');
+          if (!mountedFetch) return;
+          const runMin = data?.episode_run_time && data.episode_run_time.length > 0 ? data.episode_run_time[0] : null;
+          setEpisodeRuntimeSec(runMin ? runMin * 60 : 45 * 60); // fallback 45min
+          const sObj = data?.seasons?.find((s: any) => s.season_number === season);
+          setSeasonEpisodeCount(sObj?.episode_count || null);
+        } catch (e) {
+          setEpisodeRuntimeSec(45 * 60);
+        }
+      }
+    }
+    loadDetails();
+    return () => { mountedFetch = false; };
+  }, [tmdbId, type, season]);
+
+  // Timer to show skip button based on assumed runtime and start timestamp
+  useEffect(() => {
+    if (!isPlaying || !episodeRuntimeSec || !startTs) return;
+    let mountedTimer = true;
+    const interval = setInterval(() => {
+      if (!mountedTimer) return;
+      const elapsed = (Date.now() - (startTs || 0)) / 1000;
+      const remaining = (episodeRuntimeSec || 0) - elapsed;
+      if (remaining <= 60) {
+        setShowSkip(true);
+        setSkipCountdown(Math.max(0, Math.ceil(remaining)));
+      } else {
+        setShowSkip(false);
+      }
+    }, 1000);
+
+    return () => { mountedTimer = false; clearInterval(interval); };
+  }, [isPlaying, episodeRuntimeSec, startTs]);
 
   return (
     <div className="space-y-6">
@@ -50,7 +98,7 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
             
             <div className="absolute inset-0 flex flex-col items-center justify-center space-y-6 p-6 text-center">
               <button 
-                onClick={() => setIsPlaying(true)}
+                onClick={() => { setIsPlaying(true); setStartTs(Date.now()); }}
                 className="group/play relative flex items-center justify-center w-28 h-28 bg-primary text-primary-foreground rounded-full shadow-2xl shadow-primary/40 hover:scale-110 transition-transform duration-300"
               >
                 <div className="absolute inset-0 bg-primary rounded-full animate-ping opacity-20" />
@@ -72,11 +120,37 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
               <Loader2 className="animate-spin text-primary/40" size={48} />
             </div>
+
+            {/* Skip-to-next overlay button */}
+            {showSkip && (
+              <div className="absolute top-4 right-4 z-30 pointer-events-auto">
+                <button
+                  onClick={() => {
+                    // compute next episode
+                    let nextSeason = season;
+                    let nextEpisode = episode + 1;
+                    if (seasonEpisodeCount && nextEpisode > seasonEpisodeCount) {
+                      nextSeason = season + 1;
+                      nextEpisode = 1;
+                    }
+                    window.location.href = `/watch/tv/${tmdbId}?s=${nextSeason}&e=${nextEpisode}`;
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl shadow-lg"
+                >
+                  Pular para próximo
+                  <span className="text-sm opacity-80">({skipCountdown}s)</span>
+                </button>
+              </div>
+            )}
+
             <iframe
+              key={`${playerUrl}-${Date.now()}`}
               src={playerUrl}
               className="absolute inset-0 w-full h-full border-none z-10"
-              allow="autoplay; fullscreen; picture-in-picture; encrypted-media; gyroscope; accelerometer; clipboard-write"
+              allowFullScreen
+              allow="autoplay *; fullscreen *; encrypted-media *;"
               referrerPolicy="no-referrer"
+              scrolling="no"
             />
           </div>
         )}

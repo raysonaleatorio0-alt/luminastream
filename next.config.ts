@@ -30,6 +30,23 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: "frame-ancestors 'self' http://localhost:* https://*.firebase.google.com; frame-src 'self' https://mgeb.top https://*.mgeb.top https://www.youtube.com https://embed.dailymotion.com https://*.iframe.mediadelivery.net https://*.netu.tv;",
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'ALLOWALL',
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;
