@@ -2,16 +2,22 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Search, Film, Tv, Bookmark, Sparkles, X } from "lucide-react";
+import { Search, Film, Tv, Bookmark, Sparkles, X, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePathname, useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/providers/AuthProvider";
+import { useToast } from "@/hooks/use-toast";
+import { UserAvatar } from "./UserAvatar";
 
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
+  const { user, signInWithGoogle, logout } = useAuth();
+  const { toast } = useToast();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   const navItems = [
     { name: "Descobrir", href: "/", icon: Sparkles },
@@ -25,6 +31,39 @@ export default function Navbar() {
     if (searchQuery.trim()) {
       router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
       setIsSearchOpen(false);
+    }
+  };
+
+  const handleSignIn = async () => {
+    try {
+      await signInWithGoogle();
+      toast({
+        title: "Sucesso!",
+        description: "Você foi logado com sua conta Google",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Falha ao fazer login com Google",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      setShowProfileMenu(false);
+      toast({
+        title: "Desconectado",
+        description: "Você foi desconectado com sucesso",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Falha ao fazer logout",
+        variant: "destructive",
+      });
     }
   };
 
@@ -93,8 +132,43 @@ export default function Navbar() {
           </button>
         )}
         
-        <div className="w-10 h-10 rounded-full border border-white/10 overflow-hidden cursor-pointer hover:border-primary transition-colors">
-          <img src="https://picsum.photos/seed/user/100/100" alt="Perfil" className="w-full h-full object-cover" />
+        <div className="relative">
+          {user ? (
+            <button
+              onClick={() => setShowProfileMenu(!showProfileMenu)}
+              className="p-1 rounded-full border border-white/10 hover:border-primary transition-colors"
+            >
+              <UserAvatar 
+                photoURL={user.photoURL} 
+                displayName={user.displayName}
+                email={user.email}
+                size="md"
+              />
+            </button>
+          ) : (
+            <button
+              onClick={handleSignIn}
+              className="px-6 h-10 bg-primary text-primary-foreground font-medium rounded-full hover:bg-primary/90 transition-colors text-sm"
+            >
+              Login com Google
+            </button>
+          )}
+
+          {user && showProfileMenu && (
+            <div className="absolute right-0 mt-2 w-48 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl animate-in fade-in slide-in-from-top-2 duration-300 overflow-hidden z-50">
+              <div className="p-3 border-b border-white/10">
+                <p className="text-sm font-medium truncate">{user.displayName}</p>
+                <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center gap-2 px-4 py-2 text-sm text-foreground hover:bg-white/5 transition-colors"
+              >
+                <LogOut size={16} />
+                Logout
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </nav>

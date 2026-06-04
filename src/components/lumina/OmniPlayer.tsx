@@ -23,6 +23,11 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
     setMounted(true);
   }, []);
 
+  // Reset player when episode or season changes
+  useEffect(() => {
+    setIsPlaying(false);
+  }, [season, episode]);
+
   if (!mounted) return null;
   
   const playerUrl = type === "movie" 

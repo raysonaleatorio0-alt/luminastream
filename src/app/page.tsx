@@ -1,12 +1,15 @@
 import Navbar from "@/components/lumina/Navbar";
-import Hero from "@/components/lumina/Hero";
+import HeroCarousel from "@/components/lumina/HeroCarousel";
 import MediaCard from "@/components/lumina/MediaCard";
 import { getTrending, type Media } from "@/lib/tmdb";
+import Link from "next/link";
 
 export default async function Home() {
   const trendingData = await getTrending();
   const trending: Media[] = trendingData.results || [];
-  const heroMovie = trending[0];
+  
+  // Pega os primeiros 5 para o carrossel do banner
+  const heroMovies = trending.slice(0, 5).filter(m => m.backdrop_path);
 
   const categories = [
     { title: "Filmes Mais Votados", type: "movie" as const },
@@ -17,11 +20,12 @@ export default async function Home() {
     <div className="min-h-screen">
       <Navbar />
       
-      {heroMovie && <Hero movie={heroMovie} />}
+      {heroMovies.length > 0 && <HeroCarousel movies={heroMovies} />}
       
       <main className="px-6 md:px-12 py-24 space-y-20 max-w-7xl mx-auto">
         {categories.map((cat) => {
           const items = trending.filter(i => i.media_type === cat.type || !i.media_type).slice(1, 11);
+          const browseUrl = cat.type === 'tv' ? '/browse/series' : '/browse/movies';
           return (
             <section key={cat.title} className="space-y-8">
               <div className="flex items-end justify-between">
@@ -29,9 +33,9 @@ export default async function Home() {
                   <h2 className="text-3xl font-headline font-bold">{cat.title}</h2>
                   <p className="text-muted-foreground mt-2">Seleção escolhida a dedo do melhor conteúdo.</p>
                 </div>
-                <button className="text-primary font-bold text-sm hover:underline underline-offset-4">
+                <Link href={browseUrl} className="text-primary font-bold text-sm hover:underline underline-offset-4">
                   Ver Tudo
-                </button>
+                </Link>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
