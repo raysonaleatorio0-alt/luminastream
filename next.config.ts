@@ -1,9 +1,10 @@
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
+  serverExternalPackages: ['firebase', 'firebase-admin'],
   /* config options here */
   typescript: {
-    ignoreBuildErrors: true,
+   ignoreBuildErrors: true,
   },
   eslint: {
     ignoreDuringBuilds: true,
