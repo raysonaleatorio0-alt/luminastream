@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import {
   User,
-  signInWithPopup,
+signInWithRedirect,
   signOut,
   GoogleAuthProvider,
   onAuthStateChanged,
@@ -35,7 +35,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signInWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
+      await signInWithRedirect (auth, provider);
     } catch (error) {
       console.error('Erro ao fazer login com Google:', error);
       throw error;
