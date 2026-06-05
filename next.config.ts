@@ -38,7 +38,7 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: "frame-ancestors 'self' http://localhost:* https://*.firebase.google.com; frame-src 'self' https://mgeb.top https://*.mgeb.top https://www.youtube.com https://embed.dailymotion.com https://*.iframe.mediadelivery.net https://*.netu.tv https://console.firebase.google.com/u/3/project/meu-streaming-9d1d5/overview;",
+            value: "frame-ancestors 'self' http://localhost:* https://*.firebase.google.com; frame-src 'self' https://mgeb.top https://*.mgeb.top https://www.youtube.com https://embed.dailymotion.com https://*.iframe.mediadelivery.net https://*.netu.tv https://meu-streaming-9d1d5.firebaseapp.com;",
           },
           {
             key: 'X-Frame-Options',
