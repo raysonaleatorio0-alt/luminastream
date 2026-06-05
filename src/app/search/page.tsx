@@ -16,6 +16,12 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     results = data.results || [];
   }
 
+  const filteredResults = results.filter(
+    (item) =>
+      (item.media_type === "movie" || item.media_type === "tv") &&
+      item.vote_average != null
+  );
+
   return (
     <div className="min-h-screen">
       <Navbar />
@@ -31,23 +37,23 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
              </h1>
           </div>
           <p className="text-xl text-muted-foreground">
-            {results.length > 0 
-              ? `Encontramos ${results.length} resultados para sua busca.` 
+            {filteredResults.length > 0 
+              ? `Encontramos ${filteredResults.length} resultados para sua busca.` 
               : query 
                 ? "Nenhum resultado encontrado para sua pesquisa." 
                 : "Digite algo na barra de busca para começar."}
           </p>
         </div>
 
-        {results.length > 0 ? (
+        {filteredResults.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-            {results.map((item) => (
+            {filteredResults.map((item) => (
               <MediaCard
                 key={item.id}
                 id={item.id}
                 title={item.title || item.name || ""}
-                posterPath={item.poster_path}
-                rating={item.vote_average}
+                posterPath={item.poster_path ?? ""}
+                rating={item.vote_average ?? 0}
                 type={item.media_type === 'tv' ? 'tv' : 'movie'}
               />
             ))}

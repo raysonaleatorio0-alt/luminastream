@@ -13,7 +13,7 @@ interface MediaCardProps {
   id: number;
   title: string;
   posterPath: string;
-  rating: number;
+  rating?: number;
   type: "movie" | "tv";
   className?: string;
 }
@@ -82,7 +82,9 @@ export default function MediaCard({ id, title, posterPath, rating, type, classNa
             <div className="flex items-center gap-2 mb-2">
               <div className="flex items-center gap-1 bg-primary px-2 py-0.5 rounded-lg">
                 <Star size={12} className="fill-primary-foreground text-primary-foreground" />
-                <span className="text-xs font-bold text-primary-foreground">{rating.toFixed(1)}</span>
+                <span className="text-xs font-bold text-primary-foreground">
+                  {rating != null ? rating.toFixed(1) : "-"}
+                </span>
               </div>
               <span className="text-[10px] uppercase tracking-widest font-bold text-muted-foreground bg-white/10 px-2 py-0.5 rounded-lg border border-white/5">
                 {type === 'movie' ? 'Filme' : 'Série'}
