@@ -40,7 +40,7 @@ export default async function WatchPage({ params, searchParams }: PageProps) {
 
   return (
     <div className="min-h-screen pb-24">
-      <Navbar />
+      <Navbar showLogo={false} />
 
       <div className="pt-28 px-6 md:px-12 max-w-7xl mx-auto space-y-12">
         {/* Player Section */}

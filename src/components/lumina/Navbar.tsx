@@ -10,7 +10,11 @@ import { useAuth } from "@/providers/AuthProvider";
 import { useToast } from "@/hooks/use-toast";
 import { UserAvatar } from "./UserAvatar";
 
-export default function Navbar() {
+type NavbarProps = {
+  showLogo?: boolean;
+};
+
+export default function Navbar({ showLogo = true }: NavbarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, signInWithGoogle, logout } = useAuth();
@@ -71,9 +75,11 @@ export default function Navbar() {
     <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4 flex items-center justify-between">
       <div className="flex items-center gap-8">
         <Link href="/" className="group flex items-center gap-2">
-          <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center rotate-3 group-hover:rotate-0 transition-transform shadow-lg shadow-primary/40">
-            <span className="text-primary-foreground font-headline font-bold text-xl">L</span>
-          </div>
+          {showLogo ? (
+            <div className="w-10 h-10 rounded-xl overflow-hidden shadow-lg shadow-primary/40">
+              <img src="/favicon.png" alt="LuminaStream logo" className="h-full w-full object-cover" />
+            </div>
+          ) : null}
           <span className="font-headline font-bold text-2xl tracking-tight hidden sm:block">
             LuminaStream
           </span>

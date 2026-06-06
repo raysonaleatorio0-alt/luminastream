@@ -39,8 +39,8 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
   }, [season, episode]);
 
   const playerUrl = type === "movie" 
-    ? `https://mgeb.top/embed/${tmdbId}`
-    : `https://mgeb.top/embed/${tmdbId}/${season}/${episode}`;
+    ? `https://mgeb.top/embed/${tmdbId}#color:purple`
+    : `https://mgeb.top/embed/${tmdbId}/${season}/${episode}#color:purple`;
 
   // Fetch runtime and season info for TV shows
   useEffect(() => {

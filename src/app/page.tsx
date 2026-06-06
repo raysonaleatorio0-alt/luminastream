@@ -1,14 +1,12 @@
 import Navbar from "@/components/lumina/Navbar";
 import HeroCarousel from "@/components/lumina/HeroCarousel";
-import MediaCard from "@/components/lumina/MediaCard";
+import ContentCarousel from "@/components/lumina/ContentCarousel";
 import { getTrending, type Media } from "@/lib/tmdb";
-import Link from "next/link";
 
 export default async function Home() {
   const trendingData = await getTrending();
   const trending: Media[] = trendingData.results || [];
   
-  // Pega os primeiros 5 para o carrossel do banner
   const heroMovies = trending.slice(0, 5).filter(m => m.backdrop_path);
 
   const categories = [
@@ -18,39 +16,23 @@ export default async function Home() {
 
   return (
     <div className="min-h-screen">
-      <Navbar />
+      <Navbar showLogo={false} />
       
       {heroMovies.length > 0 && <HeroCarousel movies={heroMovies} />}
       
       <main className="px-6 md:px-12 py-24 space-y-20 max-w-7xl mx-auto">
         {categories.map((cat) => {
-          const items = trending.filter(i => i.media_type === cat.type || !i.media_type).slice(1, 11);
+          const items = trending.filter(i => i.media_type === cat.type || !i.media_type).slice(1, 21);
           const browseUrl = cat.type === 'tv' ? '/browse/series' : '/browse/movies';
           return (
-            <section key={cat.title} className="space-y-8">
-              <div className="flex items-end justify-between">
-                <div>
-                  <h2 className="text-3xl font-headline font-bold">{cat.title}</h2>
-                  <p className="text-muted-foreground mt-2">Seleção escolhida a dedo do melhor conteúdo.</p>
-                </div>
-                <Link href={browseUrl} className="text-primary font-bold text-sm hover:underline underline-offset-4">
-                  Ver Tudo
-                </Link>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-                {items.map((item) => (
-                  <MediaCard
-                    key={item.id}
-                    id={item.id}
-                    title={item.title || item.name || ""}
-                    posterPath={item.poster_path}
-                    rating={item.vote_average}
-                    type={cat.type === 'tv' ? 'tv' : 'movie'}
-                  />
-                ))}
-              </div>
-            </section>
+            <ContentCarousel
+              key={cat.title}
+              title={cat.title}
+              description="Seleção escolhida a dedo do melhor conteúdo."
+              items={items}
+              viewAllUrl={browseUrl}
+              type="media"
+            />
           );
         })}
       </main>
