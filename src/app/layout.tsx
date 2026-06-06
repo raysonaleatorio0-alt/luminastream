@@ -6,6 +6,11 @@ import { Toaster } from '@/components/ui/toaster';
 export const metadata: Metadata = {
   title: 'LuminaStream | Descoberta Cinematográfica',
   description: 'Exploração de filmes e séries com IA no LuminaStream.',
+  icons: {
+    icon: '/favicon.png',
+    shortcut: '/favicon.png',
+    apple: '/favicon.png',
+  },
 };
 
 export default function RootLayout({
