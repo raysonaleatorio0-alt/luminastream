@@ -38,6 +38,31 @@ export async function searchMedia(query: string) {
   return res.json();
 }
 
+// Backwards-compatible helpers used across the app
+export async function getPopularMovies(page: number = 1) {
+  return getPopular('movie', page);
+}
+
+export async function getTopRatedMovies(page: number = 1) {
+  const res = await fetch(`${TMDB_BASE_URL}/movie/top_rated?api_key=${TMDB_API_KEY}&language=pt-BR&page=${page}`);
+  if (!res.ok) return { results: [], total_pages: 0, page: 1 };
+  return res.json();
+}
+
+export async function getMovieDetails(id: string | number, type: 'movie' | 'tv' = 'movie') {
+  return getMediaDetails(id, type);
+}
+
+export async function searchOneByTitle(title: string, type: 'movie' | 'tv' = 'movie') {
+  const data: any = await searchMedia(title);
+  const results = data.results || [];
+  // prefer exact title match, otherwise first of requested type
+  const exact = results.find((r: any) => (r.title === title || r.name === title) && (r.media_type === type || (type === 'movie' && r.media_type === 'movie')));
+  if (exact) return exact;
+  const byType = results.find((r: any) => r.media_type === type);
+  return byType || results[0] || null;
+}
+
 export function getImageUrl(path: string, size: 'w500' | 'original' = 'w500') {
   if (!path) return 'https://picsum.photos/seed/placeholder/500/750';
   return `https://image.tmdb.org/t/p/${size}${path}`;
