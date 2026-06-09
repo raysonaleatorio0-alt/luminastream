@@ -16,10 +16,15 @@ export default function XtreamPlayer({ title, posterPath, streamUrl }: XtreamPla
   const [hasError, setHasError] = useState(false);
   const [isStalled, setIsStalled] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const restoredRef = useRef(false);
   const storageKey = `xtream-playback:${streamUrl}`;
 
+  useEffect(() => {
+    restoredRef.current = false;
+  }, [streamUrl, isPlaying]);
+
   const handleLoadedMetadata = () => {
-    if (!streamUrl || !videoRef.current || typeof window === "undefined") return;
+    if (!streamUrl || !videoRef.current || typeof window === "undefined" || restoredRef.current) return;
 
     const saved = localStorage.getItem(storageKey);
     const sec = saved ? Number(saved) : 0;
@@ -30,6 +35,8 @@ export default function XtreamPlayer({ title, posterPath, streamUrl }: XtreamPla
         // ignore invalid time set
       }
     }
+
+    restoredRef.current = true;
   };
 
   useEffect(() => {
