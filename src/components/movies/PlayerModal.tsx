@@ -68,7 +68,7 @@ export default function PlayerModal({
                 src={embedUrl}
                 className="w-full h-full border-none"
                 allowFullScreen
-                allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+                allow="autoplay; encrypted-media; picture-in-picture"
               />
             )}
           </div>
