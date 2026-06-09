@@ -3,8 +3,8 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Play, X } from "lucide-react";
-import { useState } from "react";
+import { Play, X, Maximize2 } from "lucide-react";
+import { useState, useRef } from "react";
 
 interface PlayerModalProps {
   tmdbId: string | number;
@@ -26,6 +26,21 @@ export default function PlayerModal({
   children
 }: PlayerModalProps) {
   const [open, setOpen] = useState(false);
+  const contentRef = useRef<HTMLDivElement | null>(null);
+
+  const handleFullscreen = async () => {
+    if (!contentRef.current) return;
+
+    try {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen();
+      } else {
+        await contentRef.current.requestFullscreen();
+      }
+    } catch (error) {
+      console.error("Erro ao ativar fullscreen:", error);
+    }
+  };
 
   const embedUrl = type === 'movie' 
     ? `https://mgeb.top/embed/${tmdbId}#color:purple`
@@ -44,7 +59,7 @@ export default function PlayerModal({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-5xl w-[95vw] h-[85vh] p-0 bg-black border-none overflow-hidden sm:rounded-2xl">
+      <DialogContent ref={contentRef} className="max-w-5xl w-[95vw] h-[85vh] p-0 bg-black border-none overflow-hidden sm:rounded-2xl">
         <div className="sr-only">
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
@@ -60,6 +75,14 @@ export default function PlayerModal({
                 <span className="text-primary text-[10px] font-bold">TEMPORADA {season} • EPISÓDIO {episode}</span>
               )}
             </div>
+            <Button
+              onClick={handleFullscreen}
+              variant="secondary"
+              className="h-10 px-4 rounded-xl font-bold shadow-lg shadow-secondary/10"
+            >
+              <Maximize2 className="mr-2" size={16} />
+              Tela cheia
+            </Button>
           </header>
           
           <div className="flex-1 w-full bg-black flex items-center justify-center">
