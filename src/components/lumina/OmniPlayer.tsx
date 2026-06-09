@@ -13,15 +13,13 @@ interface OmniPlayerProps {
   episode?: number;
   title: string;
   backdropPath?: string;
-  streamUrl?: string | null;
 }
 
-export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, title, backdropPath, streamUrl }: OmniPlayerProps) {
+export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, title, backdropPath }: OmniPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [mounted, setMounted] = useState(false);
   const playerRef = useRef<HTMLDivElement | null>(null);
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   // States for skip button logic
   const [episodeRuntimeSec, setEpisodeRuntimeSec] = useState<number | null>(null);
@@ -47,7 +45,7 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
     : `https://mgeb.top/embed/${tmdbId}/${season}/${episode}#color:purple`;
 
   const handleFullscreen = async () => {
-    const targetElement = (videoRef.current as any) ?? (iframeRef.current as any) ?? (playerRef.current as any);
+    const targetElement = iframeRef.current ?? playerRef.current;
     if (!targetElement) return;
 
     try {
@@ -162,37 +160,17 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
               </div>
             )}
 
-            {/**
-             * Renderiza player nativo se `streamUrl` estiver disponível.
-             * Caso contrário, não injetamos o iframe externo — mostramos mensagem e botão para abrir em nova aba.
-             */}
-            {/** @ts-ignore - streamUrl pode ser passado por integrações externas */}
-            {(/* @ts-ignore */ (typeof (null) !== 'undefined') , false)}
-            {/** actual render */}
-            {/** @ts-ignore */}
-            {/** render video when streamUrl prop is provided */}
-            {streamUrl ? (
-              <div className="absolute inset-0 bg-black">
-                <video
-                  ref={videoRef}
-                  controls
-                  autoPlay
-                  src={streamUrl}
-                  className="w-full h-full object-cover"
-                  controlsList="nodownload"
-                />
-              </div>
-            ) : (
-              <div className="absolute inset-0 flex items-center justify-center p-6 text-center">
-                <div className="rounded-3xl bg-black/80 p-8 text-white">
-                  <p className="text-lg font-semibold">Player externo removido</p>
-                  <p className="mt-2 text-sm text-muted-foreground">Não há stream direto configurado — abra em nova aba para assistir.</p>
-                  <div className="mt-4 flex justify-center">
-                    <Button onClick={() => window.open(playerUrl, '_blank')}>Abrir no host</Button>
-                  </div>
-                </div>
-              </div>
-            )}
+            <iframe
+              key={playerUrl}
+              ref={iframeRef}
+              src={playerUrl}
+              className="absolute inset-0 w-full h-full border-none z-10"
+              allowFullScreen
+              mozAllowFullScreen
+              webkitAllowFullScreen
+              allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+              scrolling="no"
+            />
           </div>
         )}
 
