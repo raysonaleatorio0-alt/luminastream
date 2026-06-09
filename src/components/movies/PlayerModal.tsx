@@ -27,17 +27,15 @@ export default function PlayerModal({
 }: PlayerModalProps) {
   const [open, setOpen] = useState(false);
   const contentRef = useRef<HTMLDivElement | null>(null);
-  const iframeRef = useRef<HTMLIFrameElement | null>(null);
 
   const handleFullscreen = async () => {
-    const targetElement = iframeRef.current ?? contentRef.current;
-    if (!targetElement) return;
+    if (!contentRef.current) return;
 
     try {
       if (document.fullscreenElement) {
         await document.exitFullscreen();
       } else {
-        await targetElement.requestFullscreen();
+        await contentRef.current.requestFullscreen();
       }
     } catch (error) {
       console.error("Erro ao ativar fullscreen:", error);
@@ -90,12 +88,9 @@ export default function PlayerModal({
           <div className="flex-1 w-full bg-black flex items-center justify-center">
             {open && (
               <iframe 
-                ref={iframeRef}
                 src={embedUrl}
                 className="w-full h-full border-none"
                 allowFullScreen
-                mozAllowFullScreen
-                webkitAllowFullScreen
                 allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
               />
             )}
