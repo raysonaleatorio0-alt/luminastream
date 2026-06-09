@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Play, Loader2, Maximize2, ExternalLink } from "lucide-react";
 import { getImageUrl, getMediaDetails } from "@/lib/tmdb";
 import { Button } from "@/components/ui/button";
@@ -18,7 +18,6 @@ interface OmniPlayerProps {
 export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, title, backdropPath }: OmniPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const playerRef = useRef<HTMLDivElement | null>(null);
 
   // States for skip button logic
   const [episodeRuntimeSec, setEpisodeRuntimeSec] = useState<number | null>(null);
@@ -42,20 +41,6 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
   const playerUrl = type === "movie" 
     ? `https://mgeb.top/embed/${tmdbId}#color:purple`
     : `https://mgeb.top/embed/${tmdbId}/${season}/${episode}#color:purple`;
-
-  const handleFullscreen = async () => {
-    if (!playerRef.current) return;
-
-    try {
-      if (document.fullscreenElement) {
-        await document.exitFullscreen();
-      } else {
-        await playerRef.current.requestFullscreen();
-      }
-    } catch (error) {
-      console.error("Erro ao ativar fullscreen:", error);
-    }
-  };
 
   // Fetch runtime and season info for TV shows
   useEffect(() => {
@@ -99,7 +84,7 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
 
   return (
     <div className="space-y-6">
-      <div ref={playerRef} className="relative aspect-video w-full bg-black rounded-[2.5rem] overflow-hidden group shadow-2xl shadow-primary/20 border border-white/5">
+      <div className="relative aspect-video w-full bg-black rounded-[2.5rem] overflow-hidden group shadow-2xl shadow-primary/20 border border-white/5">
         {!isPlaying ? (
           <>
             <div className="absolute inset-0">
@@ -181,25 +166,15 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
           Se o player ainda mostrar erro de "Sandbox", é devido às restrições do ambiente de visualização do Studio. <br className="hidden md:block" />
           Nesse caso, use o botão ao lado para assistir em uma aba limpa.
         </p>
-        <div className="flex flex-wrap gap-3 justify-center md:justify-end">
-          <Button 
-            onClick={handleFullscreen}
-            variant="secondary"
-            className="h-12 px-6 rounded-xl font-bold shadow-lg shadow-secondary/10 shrink-0"
-          >
-            <Maximize2 className="mr-2" size={18} />
-            Tela cheia
-          </Button>
-          <Button 
-            onClick={() => window.open(playerUrl, '_blank')}
-            variant="secondary"
-            className="h-12 px-6 rounded-xl font-bold shadow-lg shadow-secondary/10 shrink-0"
-          >
-            <Maximize2 className="mr-2" size={18} />
-            Abrir em Nova Aba
-            <ExternalLink className="ml-2 opacity-50" size={14} />
-          </Button>
-        </div>
+        <Button 
+          onClick={() => window.open(playerUrl, '_blank')}
+          variant="secondary"
+          className="h-12 px-6 rounded-xl font-bold shadow-lg shadow-secondary/10 shrink-0"
+        >
+          <Maximize2 className="mr-2" size={18} />
+          Abrir em Nova Aba
+          <ExternalLink className="ml-2 opacity-50" size={14} />
+        </Button>
       </div>
     </div>
   );
