@@ -36,23 +36,37 @@ export default function PlayerModal({
       try {
         if (!e.origin.includes('mgeb.top')) return;
         const data = e.data || {};
+        console.log('[PlayerModal embed message]', e.origin, data);
         if (data && typeof data.currentTime === 'number') {
           localStorage.setItem(storageKey, String(data.currentTime));
         }
       } catch (err) {}
     }
 
-    window.addEventListener('message', onMessage);
-    const interval = setInterval(() => {
+    function saveNow() {
       try {
         if (iframeRef.current && iframeRef.current.contentWindow) {
           iframeRef.current.contentWindow.postMessage({ type: 'requestTime' }, 'https://mgeb.top');
         }
       } catch (e) {}
-    }, 5000);
+    }
+
+    window.addEventListener('message', onMessage);
+    const interval = setInterval(() => {
+      saveNow();
+    }, 2000);
+
+    function onVisibility() {
+      if (document.visibilityState === 'hidden') saveNow();
+    }
+
+    window.addEventListener('beforeunload', saveNow);
+    document.addEventListener('visibilitychange', onVisibility);
 
     return () => {
       window.removeEventListener('message', onMessage);
+      window.removeEventListener('beforeunload', saveNow);
+      document.removeEventListener('visibilitychange', onVisibility);
       clearInterval(interval);
     };
   }, [storageKey]);

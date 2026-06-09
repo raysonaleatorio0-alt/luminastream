@@ -104,6 +104,7 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
       try {
         if (!e.origin.includes('mgeb.top')) return;
         const data = e.data || {};
+        console.log('[OmniPlayer embed message]', e.origin, data);
         if (data && typeof data.currentTime === 'number') {
           localStorage.setItem(storageKey, String(data.currentTime));
         }
@@ -121,19 +122,33 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
 
   // Periodically request time from iframe (will only work if embed supports messaging)
   useEffect(() => {
-    const interval = setInterval(() => {
+    function saveNow() {
       try {
-        if (iframeRef.current && iframeRef.current.contentWindow) {
-          iframeRef.current.contentWindow.postMessage({ type: 'requestTime' }, 'https://mgeb.top');
-        }
-        // also persist native video currentTime
         if (videoRef.current) {
           localStorage.setItem(storageKey, String(videoRef.current.currentTime || 0));
         }
+        if (iframeRef.current && iframeRef.current.contentWindow) {
+          iframeRef.current.contentWindow.postMessage({ type: 'requestTime' }, 'https://mgeb.top');
+        }
       } catch (e) {}
-    }, 5000);
+    }
 
-    return () => clearInterval(interval);
+    const interval = setInterval(() => {
+      saveNow();
+    }, 1000);
+
+    function onVisibility() {
+      if (document.visibilityState === 'hidden') saveNow();
+    }
+
+    window.addEventListener('beforeunload', saveNow);
+    document.addEventListener('visibilitychange', onVisibility);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('beforeunload', saveNow);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
   }, [storageKey]);
 
   return (
