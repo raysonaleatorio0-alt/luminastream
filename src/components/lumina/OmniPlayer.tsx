@@ -27,6 +27,9 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
   const [showSkip, setShowSkip] = useState(false);
   const [skipCountdown, setSkipCountdown] = useState<number>(0);
   const [seasonEpisodeCount, setSeasonEpisodeCount] = useState<number | null>(null);
+  const [iframeLoaded, setIframeLoaded] = useState(false);
+  const [embedResponded, setEmbedResponded] = useState(false);
+  const [showStallNotice, setShowStallNotice] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -105,6 +108,7 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
         if (!e.origin.includes('mgeb.top')) return;
         const data = e.data || {};
         console.log('[OmniPlayer embed message]', e.origin, data);
+        setEmbedResponded(true);
         if (data && typeof data.currentTime === 'number') {
           localStorage.setItem(storageKey, String(data.currentTime));
         }
@@ -151,6 +155,20 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
     };
   }, [storageKey]);
 
+  useEffect(() => {
+    if (!isPlaying || !iframeLoaded) return;
+    if (embedResponded) {
+      setShowStallNotice(false);
+      return;
+    }
+
+    const stallTimer = setTimeout(() => {
+      setShowStallNotice(true);
+    }, 20000);
+
+    return () => clearTimeout(stallTimer);
+  }, [isPlaying, iframeLoaded, embedResponded]);
+
   return (
     <div className="space-y-6">
       <div className="relative aspect-video w-full bg-black rounded-[2.5rem] overflow-hidden group shadow-2xl shadow-primary/20 border border-white/5">
@@ -160,6 +178,7 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
             key={playerUrl}
             ref={iframeRef}
             src={playerUrl}
+            onLoad={() => setIframeLoaded(true)}
             className={`absolute inset-0 w-full h-full border-none z-10 transition-opacity duration-300 ${isPlaying ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
             allowFullScreen
             mozAllowFullScreen
@@ -168,6 +187,37 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
             referrerPolicy="no-referrer"
             scrolling="no"
           />
+
+          {showStallNotice && (
+            <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/80 p-6 text-center">
+              <div className="max-w-xl rounded-3xl bg-card/95 border border-white/10 p-6 shadow-2xl">
+                <p className="text-white font-bold text-lg">O player parece ter travado.</p>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  O MegaPlay detectou stall e pode não estar progredindo. Tente recarregar o player ou abrir em outra aba.
+                </p>
+                <div className="mt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
+                  <Button
+                    variant="secondary"
+                    className="w-full sm:w-auto"
+                    onClick={() => {
+                      setShowStallNotice(false);
+                      if (iframeRef.current) {
+                        iframeRef.current.src = playerUrl;
+                      }
+                    }}
+                  >
+                    Recarregar player
+                  </Button>
+                  <Button
+                    className="w-full sm:w-auto"
+                    onClick={() => window.open(playerUrl, '_blank')}
+                  >
+                    Abrir em nova aba
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Poster + play button overlay (shown when not playing) */}
           <div className={`absolute inset-0 transition-opacity duration-300 ${isPlaying ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}>
