@@ -30,6 +30,7 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
   const [iframeLoaded, setIframeLoaded] = useState(false);
   const [embedResponded, setEmbedResponded] = useState(false);
   const [showStallNotice, setShowStallNotice] = useState(false);
+  const [isStalled, setIsStalled] = useState(false);
 
   useEffect(() => {
     setMounted(true);
