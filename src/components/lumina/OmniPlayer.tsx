@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Play, Loader2, Maximize2, ExternalLink } from "lucide-react";
 import { getImageUrl, getMediaDetails } from "@/lib/tmdb";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,8 @@ interface OmniPlayerProps {
 export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, title, backdropPath }: OmniPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   // States for skip button logic
   const [episodeRuntimeSec, setEpisodeRuntimeSec] = useState<number | null>(null);
@@ -41,6 +43,8 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
   const playerUrl = type === "movie" 
     ? `https://mgeb.top/embed/${tmdbId}#color:purple`
     : `https://mgeb.top/embed/${tmdbId}/${season}/${episode}#color:purple`;
+
+  const storageKey = `playpos:${type}:${tmdbId}:s${season}:e${episode}`;
 
   // Fetch runtime and season info for TV shows
   useEffect(() => {
@@ -81,6 +85,56 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
 
     return () => { mountedTimer = false; clearInterval(interval); };
   }, [isPlaying, episodeRuntimeSec, startTs]);
+
+  // Try to restore saved position for native video
+  useEffect(() => {
+    const saved = typeof window !== 'undefined' ? localStorage.getItem(storageKey) : null;
+    if (saved && videoRef.current) {
+      const sec = Number(saved);
+      if (!isNaN(sec) && sec > 0) {
+        const setPos = () => {
+          try { videoRef.current!.currentTime = sec; } catch (e) {}
+        };
+        videoRef.current.addEventListener('loadedmetadata', setPos, { once: true });
+      }
+    }
+
+    // Listen for postMessage from embed that may report playback time
+    function onMessage(e: MessageEvent) {
+      try {
+        if (!e.origin.includes('mgeb.top')) return;
+        const data = e.data || {};
+        if (data && typeof data.currentTime === 'number') {
+          localStorage.setItem(storageKey, String(data.currentTime));
+        }
+      } catch (err) {
+        // ignore
+      }
+    }
+
+    window.addEventListener('message', onMessage);
+
+    return () => {
+      window.removeEventListener('message', onMessage);
+    };
+  }, [storageKey]);
+
+  // Periodically request time from iframe (will only work if embed supports messaging)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      try {
+        if (iframeRef.current && iframeRef.current.contentWindow) {
+          iframeRef.current.contentWindow.postMessage({ type: 'requestTime' }, 'https://mgeb.top');
+        }
+        // also persist native video currentTime
+        if (videoRef.current) {
+          localStorage.setItem(storageKey, String(videoRef.current.currentTime || 0));
+        }
+      } catch (e) {}
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [storageKey]);
 
   return (
     <div className="space-y-6">
@@ -145,9 +199,12 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
 
             <iframe
               key={playerUrl}
+              ref={iframeRef}
               src={playerUrl}
               className="absolute inset-0 w-full h-full border-none z-10"
               allowFullScreen
+              mozAllowFullScreen
+              webkitAllowFullScreen
               allow="autoplay *; fullscreen *; encrypted-media *;"
               referrerPolicy="no-referrer"
               scrolling="no"

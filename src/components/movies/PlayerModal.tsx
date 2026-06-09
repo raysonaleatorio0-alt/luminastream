@@ -4,7 +4,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Play, X } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 interface PlayerModalProps {
   tmdbId: string | number;
@@ -26,6 +26,36 @@ export default function PlayerModal({
   children
 }: PlayerModalProps) {
   const [open, setOpen] = useState(false);
+  const contentRef = useRef<HTMLDivElement | null>(null);
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
+
+  const storageKey = `playpos:${type}:${tmdbId}:s${season}:e${episode}`;
+
+  useEffect(() => {
+    function onMessage(e: MessageEvent) {
+      try {
+        if (!e.origin.includes('mgeb.top')) return;
+        const data = e.data || {};
+        if (data && typeof data.currentTime === 'number') {
+          localStorage.setItem(storageKey, String(data.currentTime));
+        }
+      } catch (err) {}
+    }
+
+    window.addEventListener('message', onMessage);
+    const interval = setInterval(() => {
+      try {
+        if (iframeRef.current && iframeRef.current.contentWindow) {
+          iframeRef.current.contentWindow.postMessage({ type: 'requestTime' }, 'https://mgeb.top');
+        }
+      } catch (e) {}
+    }, 5000);
+
+    return () => {
+      window.removeEventListener('message', onMessage);
+      clearInterval(interval);
+    };
+  }, [storageKey]);
 
   const embedUrl = type === 'movie' 
     ? `https://mgeb.top/embed/${tmdbId}#color:purple`
@@ -65,10 +95,13 @@ export default function PlayerModal({
           <div className="flex-1 w-full bg-black flex items-center justify-center">
             {open && (
               <iframe 
+                ref={iframeRef}
                 src={embedUrl}
                 className="w-full h-full border-none"
                 allowFullScreen
-                allow="autoplay; encrypted-media; picture-in-picture"
+                mozAllowFullScreen
+                webkitAllowFullScreen
+                allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
               />
             )}
           </div>
