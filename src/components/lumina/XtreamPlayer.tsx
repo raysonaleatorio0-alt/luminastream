@@ -16,6 +16,7 @@ export default function XtreamPlayer({ title, posterPath, streamUrl }: XtreamPla
   const [hasError, setHasError] = useState(false);
   const [isStalled, setIsStalled] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const waitingTimerRef = useRef<number | null>(null);
   const restoredRef = useRef(false);
   const storageKey = `xtream-playback:${streamUrl}`;
 
@@ -49,8 +50,21 @@ export default function XtreamPlayer({ title, posterPath, streamUrl }: XtreamPla
       }
     };
 
-    const handleWaiting = () => setIsStalled(true);
-    const handlePlaying = () => setIsStalled(false);
+    const handleWaiting = () => {
+      if (waitingTimerRef.current) window.clearTimeout(waitingTimerRef.current);
+      waitingTimerRef.current = window.setTimeout(() => {
+        setIsStalled(true);
+      }, 300);
+    };
+
+    const handlePlaying = () => {
+      if (waitingTimerRef.current) {
+        window.clearTimeout(waitingTimerRef.current);
+        waitingTimerRef.current = null;
+      }
+      setIsStalled(false);
+      setIsLoading(false);
+    };
 
     video.addEventListener("timeupdate", savePosition);
     video.addEventListener("pause", savePosition);
@@ -58,6 +72,10 @@ export default function XtreamPlayer({ title, posterPath, streamUrl }: XtreamPla
     video.addEventListener("playing", handlePlaying);
 
     return () => {
+      if (waitingTimerRef.current) {
+        window.clearTimeout(waitingTimerRef.current);
+        waitingTimerRef.current = null;
+      }
       video.removeEventListener("timeupdate", savePosition);
       video.removeEventListener("pause", savePosition);
       video.removeEventListener("waiting", handleWaiting);
