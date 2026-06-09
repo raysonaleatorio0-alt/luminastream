@@ -18,22 +18,19 @@ export default function XtreamPlayer({ title, posterPath, streamUrl }: XtreamPla
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const storageKey = `xtream-playback:${streamUrl}`;
 
-  useEffect(() => {
-    if (!streamUrl || !videoRef.current) return;
+  const handleLoadedMetadata = () => {
+    if (!streamUrl || !videoRef.current || typeof window === "undefined") return;
 
-    const saved = typeof window !== "undefined" ? localStorage.getItem(storageKey) : null;
+    const saved = localStorage.getItem(storageKey);
     const sec = saved ? Number(saved) : 0;
-    if (!isNaN(sec) && sec > 1) {
-      const setPosition = () => {
-        try {
-          if (videoRef.current) videoRef.current.currentTime = sec;
-        } catch (_error) {
-          // ignore invalid time set
-        }
-      };
-      videoRef.current.addEventListener("loadedmetadata", setPosition, { once: true });
+    if (!isNaN(sec) && sec > 1 && sec < (videoRef.current.duration || Infinity)) {
+      try {
+        videoRef.current.currentTime = sec;
+      } catch (_error) {
+        // ignore invalid time set
+      }
     }
-  }, [streamUrl, storageKey]);
+  };
 
   useEffect(() => {
     const video = videoRef.current;
@@ -110,6 +107,7 @@ export default function XtreamPlayer({ title, posterPath, streamUrl }: XtreamPla
               src={streamUrl}
               className="w-full h-full object-cover"
               controlsList="nodownload"
+              onLoadedMetadata={handleLoadedMetadata}
               onCanPlay={() => {
                 setIsLoading(false);
                 setHasError(false);
