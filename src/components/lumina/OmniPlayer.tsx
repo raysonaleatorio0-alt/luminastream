@@ -144,7 +144,7 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
             )}
 
             <iframe
-              key={`${playerUrl}-${Date.now()}`}
+              key={playerUrl}
               src={playerUrl}
               className="absolute inset-0 w-full h-full border-none z-10"
               allowFullScreen
