@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Play, Loader2, Maximize2, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -12,6 +12,54 @@ interface XtreamPlayerProps {
 
 export default function XtreamPlayer({ title, posterPath, streamUrl }: XtreamPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [hasError, setHasError] = useState(false);
+  const [isStalled, setIsStalled] = useState(false);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const storageKey = `xtream-playback:${streamUrl}`;
+
+  useEffect(() => {
+    if (!streamUrl || !videoRef.current) return;
+
+    const saved = typeof window !== "undefined" ? localStorage.getItem(storageKey) : null;
+    const sec = saved ? Number(saved) : 0;
+    if (!isNaN(sec) && sec > 1) {
+      const setPosition = () => {
+        try {
+          if (videoRef.current) videoRef.current.currentTime = sec;
+        } catch (_error) {
+          // ignore invalid time set
+        }
+      };
+      videoRef.current.addEventListener("loadedmetadata", setPosition, { once: true });
+    }
+  }, [streamUrl, storageKey]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const savePosition = () => {
+      if (videoRef.current) {
+        localStorage.setItem(storageKey, String(videoRef.current.currentTime));
+      }
+    };
+
+    const handleWaiting = () => setIsStalled(true);
+    const handlePlaying = () => setIsStalled(false);
+
+    video.addEventListener("timeupdate", savePosition);
+    video.addEventListener("pause", savePosition);
+    video.addEventListener("waiting", handleWaiting);
+    video.addEventListener("playing", handlePlaying);
+
+    return () => {
+      video.removeEventListener("timeupdate", savePosition);
+      video.removeEventListener("pause", savePosition);
+      video.removeEventListener("waiting", handleWaiting);
+      video.removeEventListener("playing", handlePlaying);
+    };
+  }, [storageKey, isPlaying]);
 
   return (
     <div className="space-y-6">
@@ -29,7 +77,12 @@ export default function XtreamPlayer({ title, posterPath, streamUrl }: XtreamPla
 
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 text-center px-6">
               <button
-                onClick={() => setIsPlaying(true)}
+                onClick={() => {
+                  setIsPlaying(true);
+                  setIsLoading(true);
+                  setHasError(false);
+                  setIsStalled(false);
+                }}
                 className="relative flex items-center justify-center w-28 h-28 rounded-full bg-primary text-primary-foreground shadow-2xl shadow-primary/40 hover:scale-110 transition-transform duration-300"
               >
                 <div className="absolute inset-0 rounded-full bg-primary animate-ping opacity-20" />
@@ -48,12 +101,32 @@ export default function XtreamPlayer({ title, posterPath, streamUrl }: XtreamPla
         ) : streamUrl ? (
           <div className="absolute inset-0 bg-black">
             <video
+              ref={videoRef}
               controls
               autoPlay
+              playsInline
+              preload="metadata"
+              poster={posterPath}
               src={streamUrl}
               className="w-full h-full object-cover"
               controlsList="nodownload"
+              onCanPlay={() => {
+                setIsLoading(false);
+                setHasError(false);
+              }}
+              onError={() => {
+                setHasError(true);
+                setIsLoading(false);
+              }}
             />
+            {(isLoading || isStalled) && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/75 text-white">
+                <div className="text-center space-y-2">
+                  <Loader2 className="mx-auto animate-spin" size={36} />
+                  <p className="text-sm">{isStalled ? "Carregando... " : "Inicializando reprodução..."}</p>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div className="absolute inset-0 flex items-center justify-center p-6 text-center">
@@ -62,6 +135,35 @@ export default function XtreamPlayer({ title, posterPath, streamUrl }: XtreamPla
               <p className="mt-2 text-sm text-muted-foreground">
                 Ainda não foi possível carregar o conteúdo direto para esta série.
               </p>
+            </div>
+          </div>
+        )}
+
+        {hasError && (
+          <div className="absolute inset-0 flex items-center justify-center p-6 text-center z-10">
+            <div className="rounded-3xl bg-black/90 border border-white/10 p-8 shadow-2xl">
+              <p className="text-lg font-semibold text-white">Erro ao reproduzir</p>
+              <p className="mt-2 text-sm text-muted-foreground">O player teve problema ao carregar o stream. Tente novamente ou abra em nova aba.</p>
+              <div className="mt-4 flex flex-col sm:flex-row gap-3 justify-center">
+                <Button
+                  onClick={() => {
+                    setHasError(false);
+                    setIsLoading(true);
+                    if (videoRef.current) {
+                      videoRef.current.load();
+                      videoRef.current.play().catch(() => {});
+                    }
+                  }}
+                >
+                  Recarregar
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={() => window.open(streamUrl, "_blank")}
+                >
+                  Abrir em nova aba
+                </Button>
+              </div>
             </div>
           </div>
         )}

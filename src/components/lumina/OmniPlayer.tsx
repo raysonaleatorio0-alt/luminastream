@@ -48,6 +48,7 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
     : `https://mgeb.top/embed/${tmdbId}/${season}/${episode}#color:purple`;
 
   const storageKey = `playpos:${type}:${tmdbId}:s${season}:e${episode}`;
+  const showLoader = isPlaying && (!iframeLoaded || isStalled);
 
   // Fetch runtime and season info for TV shows
   useEffect(() => {
@@ -251,9 +252,11 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
           </div>
 
           {/* Loading spinner and skip overlay (shown above iframe) */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-            <Loader2 className="animate-spin text-primary/40" size={48} />
-          </div>
+          {showLoader && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+              <Loader2 className="animate-spin text-primary/40" size={48} />
+            </div>
+          )}
 
           {showSkip && (
             <div className="absolute top-4 right-4 z-30 pointer-events-auto">
@@ -279,14 +282,14 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
 
         <div className="absolute bottom-6 left-6 pointer-events-none z-20">
           <div className="px-4 py-1.5 bg-black/60 backdrop-blur-md rounded-xl border border-white/10 text-[10px] font-bold tracking-[0.2em] text-primary uppercase">
-            Player Lumina v3
+            Player MegaEmbed
           </div>
         </div>
       </div>
 
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-4 rounded-3xl bg-card border border-white/5">
         <p className="text-xs text-muted-foreground font-medium text-center md:text-left">
-          Se o player ainda mostrar erro de "Sandbox", é devido às restrições do ambiente de visualização do Studio. <br className="hidden md:block" />
+          Se o player MegaEmbed mostrar erro de "Sandbox", é por causa das restrições do ambiente de visualização. <br className="hidden md:block" />
           Nesse caso, use o botão ao lado para assistir em uma aba limpa.
         </p>
         <Button 
