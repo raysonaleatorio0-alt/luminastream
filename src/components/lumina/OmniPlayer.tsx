@@ -139,8 +139,23 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
   return (
     <div className="space-y-6">
       <div className="relative aspect-video w-full bg-black rounded-[2.5rem] overflow-hidden group shadow-2xl shadow-primary/20 border border-white/5">
-        {!isPlaying ? (
-          <>
+        <div className="w-full h-full bg-black relative">
+          {/* Iframe always mounted to avoid remounts that reset playback */}
+          <iframe
+            key={playerUrl}
+            ref={iframeRef}
+            src={playerUrl}
+            className={`absolute inset-0 w-full h-full border-none z-10 transition-opacity duration-300 ${isPlaying ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+            allowFullScreen
+            mozAllowFullScreen
+            webkitAllowFullScreen
+            allow="autoplay *; fullscreen *; encrypted-media *;"
+            referrerPolicy="no-referrer"
+            scrolling="no"
+          />
+
+          {/* Poster + play button overlay (shown when not playing) */}
+          <div className={`absolute inset-0 transition-opacity duration-300 ${isPlaying ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}>
             <div className="absolute inset-0">
               <img
                 src={getImageUrl(backdropPath || "", 'original')}
@@ -149,7 +164,7 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
             </div>
-            
+
             <div className="absolute inset-0 flex flex-col items-center justify-center space-y-6 p-6 text-center">
               <button 
                 onClick={() => { setIsPlaying(true); setStartTs(Date.now()); }}
@@ -168,49 +183,34 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
                 </p>
               </div>
             </div>
-          </>
-        ) : (
-          <div className="w-full h-full bg-black relative">
-            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <Loader2 className="animate-spin text-primary/40" size={48} />
-            </div>
-
-            {/* Skip-to-next overlay button */}
-            {showSkip && (
-              <div className="absolute top-4 right-4 z-30 pointer-events-auto">
-                <button
-                  onClick={() => {
-                    // compute next episode
-                    let nextSeason = season;
-                    let nextEpisode = episode + 1;
-                    if (seasonEpisodeCount && nextEpisode > seasonEpisodeCount) {
-                      nextSeason = season + 1;
-                      nextEpisode = 1;
-                    }
-                    window.location.href = `/watch/tv/${tmdbId}?s=${nextSeason}&e=${nextEpisode}`;
-                  }}
-                  className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl shadow-lg"
-                >
-                  Pular para próximo
-                  <span className="text-sm opacity-80">({skipCountdown}s)</span>
-                </button>
-              </div>
-            )}
-
-            <iframe
-              key={playerUrl}
-              ref={iframeRef}
-              src={playerUrl}
-              className="absolute inset-0 w-full h-full border-none z-10"
-              allowFullScreen
-              mozAllowFullScreen
-              webkitAllowFullScreen
-              allow="autoplay *; fullscreen *; encrypted-media *;"
-              referrerPolicy="no-referrer"
-              scrolling="no"
-            />
           </div>
-        )}
+
+          {/* Loading spinner and skip overlay (shown above iframe) */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+            <Loader2 className="animate-spin text-primary/40" size={48} />
+          </div>
+
+          {showSkip && (
+            <div className="absolute top-4 right-4 z-30 pointer-events-auto">
+              <button
+                onClick={() => {
+                  // compute next episode
+                  let nextSeason = season;
+                  let nextEpisode = episode + 1;
+                  if (seasonEpisodeCount && nextEpisode > seasonEpisodeCount) {
+                    nextSeason = season + 1;
+                    nextEpisode = 1;
+                  }
+                  window.location.href = `/watch/tv/${tmdbId}?s=${nextSeason}&e=${nextEpisode}`;
+                }}
+                className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-xl shadow-lg"
+              >
+                Pular para próximo
+                <span className="text-sm opacity-80">({skipCountdown}s)</span>
+              </button>
+            </div>
+          )}
+        </div>
 
         <div className="absolute bottom-6 left-6 pointer-events-none z-20">
           <div className="px-4 py-1.5 bg-black/60 backdrop-blur-md rounded-xl border border-white/10 text-[10px] font-bold tracking-[0.2em] text-primary uppercase">
