@@ -183,15 +183,16 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
                 />
               </div>
             ) : (
-              <div className="absolute inset-0 flex items-center justify-center p-6 text-center">
-                <div className="rounded-3xl bg-black/80 p-8 text-white">
-                  <p className="text-lg font-semibold">Player externo removido</p>
-                  <p className="mt-2 text-sm text-muted-foreground">Não há stream direto configurado — abra em nova aba para assistir.</p>
-                  <div className="mt-4 flex justify-center">
-                    <Button onClick={() => window.open(playerUrl, '_blank')}>Abrir no host</Button>
-                  </div>
-                </div>
-              </div>
+              <iframe
+                ref={iframeRef}
+                src={playerUrl}
+                className="absolute inset-0 w-full h-full border-none z-10"
+                allowFullScreen
+                mozAllowFullScreen
+                webkitAllowFullScreen
+                allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+                scrolling="no"
+              />
             )}
           </div>
         )}
