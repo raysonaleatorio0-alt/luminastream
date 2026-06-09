@@ -29,7 +29,6 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
   const [seasonEpisodeCount, setSeasonEpisodeCount] = useState<number | null>(null);
   const [iframeLoaded, setIframeLoaded] = useState(false);
   const [embedResponded, setEmbedResponded] = useState(false);
-  const [showStallNotice, setShowStallNotice] = useState(false);
   const [isStalled, setIsStalled] = useState(false);
 
   useEffect(() => {
@@ -159,15 +158,11 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
 
   useEffect(() => {
     if (!isPlaying || !iframeLoaded) return;
-    if (embedResponded) {
-      setShowStallNotice(false);
-      return;
-    }
-
+    // Keep embed stall detection logic active but do not display a reload prompt.
+    if (embedResponded) return;
     const stallTimer = setTimeout(() => {
-      setShowStallNotice(true);
+      // no UI action needed here
     }, 20000);
-
     return () => clearTimeout(stallTimer);
   }, [isPlaying, iframeLoaded, embedResponded]);
 
@@ -190,36 +185,6 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
             scrolling="no"
           />
 
-          {showStallNotice && (
-            <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/80 p-6 text-center">
-              <div className="max-w-xl rounded-3xl bg-card/95 border border-white/10 p-6 shadow-2xl">
-                <p className="text-white font-bold text-lg">O player parece ter travado.</p>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  O MegaPlay detectou stall e pode não estar progredindo. Tente recarregar o player ou abrir em outra aba.
-                </p>
-                <div className="mt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
-                  <Button
-                    variant="secondary"
-                    className="w-full sm:w-auto"
-                    onClick={() => {
-                      setShowStallNotice(false);
-                      if (iframeRef.current) {
-                        iframeRef.current.src = playerUrl;
-                      }
-                    }}
-                  >
-                    Recarregar player
-                  </Button>
-                  <Button
-                    className="w-full sm:w-auto"
-                    onClick={() => window.open(playerUrl, '_blank')}
-                  >
-                    Abrir em nova aba
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* Poster + play button overlay (shown when not playing) */}
           <div className={`absolute inset-0 transition-opacity duration-300 ${isPlaying ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}>
