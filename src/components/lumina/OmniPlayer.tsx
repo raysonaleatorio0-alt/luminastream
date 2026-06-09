@@ -19,6 +19,7 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
   const [isPlaying, setIsPlaying] = useState(false);
   const [mounted, setMounted] = useState(false);
   const playerRef = useRef<HTMLDivElement | null>(null);
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
 
   // States for skip button logic
   const [episodeRuntimeSec, setEpisodeRuntimeSec] = useState<number | null>(null);
@@ -44,13 +45,14 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
     : `https://mgeb.top/embed/${tmdbId}/${season}/${episode}#color:purple`;
 
   const handleFullscreen = async () => {
-    if (!playerRef.current) return;
+    const targetElement = iframeRef.current ?? playerRef.current;
+    if (!targetElement) return;
 
     try {
       if (document.fullscreenElement) {
         await document.exitFullscreen();
       } else {
-        await playerRef.current.requestFullscreen();
+        await targetElement.requestFullscreen();
       }
     } catch (error) {
       console.error("Erro ao ativar fullscreen:", error);
@@ -160,9 +162,12 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
 
             <iframe
               key={playerUrl}
+              ref={iframeRef}
               src={playerUrl}
               className="absolute inset-0 w-full h-full border-none z-10"
               allowFullScreen
+              mozAllowFullScreen
+              webkitAllowFullScreen
               allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
               scrolling="no"
             />
