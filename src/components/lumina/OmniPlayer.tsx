@@ -148,8 +148,7 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
               src={playerUrl}
               className="absolute inset-0 w-full h-full border-none z-10"
               allowFullScreen
-              allow="autoplay *; fullscreen *; encrypted-media *;"
-              referrerPolicy="no-referrer"
+              allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
               scrolling="no"
             />
           </div>
