@@ -41,8 +41,8 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
   // Using MegaEmbed iframe with proper security attributes and permissions
   // Construindo URL do embed para o MegaEmbed
   const playerUrl = type === "movie" 
-    ? `https://mgeb.top/${tmdbId}`
-    : `https://mgeb.top/${tmdbId}/${season}/${episode}`;
+    ? `https://mgeb.top/embed/${tmdbId}`
+    : `https://mgeb.top/embed/${tmdbId}/${season}/${episode}`;
 
   const storageKey = `playpos:${type}:${tmdbId}:s${season}:e${episode}`;
   const showLoader = isPlaying && isStalled;
