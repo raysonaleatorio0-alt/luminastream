@@ -4,7 +4,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Play, Loader2 } from "lucide-react";
 import { getImageUrl, getMediaDetails } from "@/lib/tmdb";
-import MegaPlayComponent from "@/components/lumina/MegaPlayComponent";
 
 interface OmniPlayerProps {
   tmdbId: string;
@@ -39,12 +38,11 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
     setSkipCountdown(0);
   }, [season, episode]);
 
-  // Using local MegaPlayComponent with next/script for proper jQuery and module support
-  // Construindo URL de vídeo para o player local
-  // O player espera uma URL HLS (.m3u8) ou MP4 real
-  const videoUrl = type === "movie" 
-    ? `https://mgeb.top/movie/rsnvo090/raysonvo246@/${tmdbId}.mp4`
-    : `https://mgeb.top/series/rsnvo090/raysonvo246@/${tmdbId}/${season}/${episode}.mp4`;
+  // Using MegaEmbed iframe with proper security attributes and permissions
+  // Construindo URL do embed para o MegaEmbed
+  const playerUrl = type === "movie" 
+    ? `https://mgeb.top/${tmdbId}`
+    : `https://mgeb.top/${tmdbId}/${season}/${episode}`;
 
   const storageKey = `playpos:${type}:${tmdbId}:s${season}:e${episode}`;
   const showLoader = isPlaying && isStalled;
@@ -99,15 +97,18 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
     <div className="space-y-6">
       <div className="relative aspect-video w-full bg-black rounded-[2.5rem] overflow-hidden group shadow-2xl shadow-primary/20 border border-white/5">
         <div className="w-full h-full bg-black relative">
-          {/* Local MegaPlayComponent with corrected jQuery and type="module" loading */}
+          {/* MegaEmbed iframe with security and permission attributes */}
           {isPlaying ? (
-            <div className="absolute inset-0 w-full h-full z-10">
-              <MegaPlayComponent 
-                videoUrl={videoUrl}
-                autoplay={true}
-                controls={true}
-              />
-            </div>
+            <iframe
+              src={playerUrl}
+              allowFullScreen
+              webkitallowfullscreen="true"
+              mozallowfullscreen="true"
+              allow="autoplay; encrypted-media; screen-wake-lock"
+              sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
+              style={{ width: '100%', height: '100%', border: 'none', position: 'absolute', inset: 0 }}
+              title={`${title} ${type === 'tv' ? `- T${season}E${episode}` : ''}`}
+            />
           ) : null}
 
 
@@ -173,14 +174,14 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
 
         <div className="absolute bottom-6 left-6 pointer-events-none z-20">
           <div className="px-4 py-1.5 bg-black/60 backdrop-blur-md rounded-xl border border-white/10 text-[10px] font-bold tracking-[0.2em] text-primary uppercase">
-            Player Local - MegaPlay
+            Player MegaEmbed
           </div>
         </div>
       </div>
 
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-4 rounded-3xl bg-card border border-white/5">
         <p className="text-xs text-muted-foreground font-medium text-center md:text-left">
-          Este player usa o componente local MegaPlayComponent com jQuery e suporte a type="module". Se houver problemas de vídeo, verifique se o link HLS está configurado corretamente no serviço.
+          Player MegaEmbed com atributos de segurança e permissões configurados. Os atributos sandbox, allow e fullscreen garantem compatibilidade com políticas de recursos do navegador.
         </p>
       </div>
     </div>
