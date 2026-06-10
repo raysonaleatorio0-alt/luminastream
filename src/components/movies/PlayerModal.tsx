@@ -114,7 +114,7 @@ export default function PlayerModal({
                 allowFullScreen
                 mozAllowFullScreen
                 webkitAllowFullScreen
-                allow="autoplay; fullscreen; encrypted-media; picture-in-picture; screen-wake-lock"
+                allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
               />
             )}
           </div>

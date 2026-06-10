@@ -56,13 +56,21 @@ export default function XtreamPlayer({ title, posterPath, streamUrl }: XtreamPla
           const hls = new Hls({
             maxBufferLength: 30,
             maxMaxBufferLength: 60,
-            fragLoadingMaxRetry: 6,
-            fragLoadingRetryDelay: 2000,
-            manifestLoadingMaxRetry: 6,
-            manifestLoadingRetryDelay: 2000,
-            levelLoadingRetryDelay: 2000,
+            fragLoadingMaxRetry: 12,
+            fragLoadingRetryDelay: 1000,
+            fragLoadingTimeOut: 20000,
+            manifestLoadingMaxRetry: 12,
+            manifestLoadingRetryDelay: 1000,
+            manifestLoadingTimeOut: 20000,
+            levelLoadingRetryDelay: 1000,
             enableWorker: true,
             startFragPrefetch: true,
+            lowLevelLogger: console,
+            // Desativar HTTP/3 QUIC e forçar HTTP/1.1 ou HTTP/2
+            requestHeader: {
+              'User-Agent': 'Mozilla/5.0'
+            },
+            emeHeaders: {},
           });
 
           hlsRef.current = hls;
@@ -73,20 +81,44 @@ export default function XtreamPlayer({ title, posterPath, streamUrl }: XtreamPla
 
           hls.on(Hls.Events.ERROR, (_event, data) => {
             console.warn("[HLS] error", data.type, data.details, data.fatal);
+            
+            // Log detalhes específicos do erro de rede (QUIC)
+            if (data.type === Hls.ErrorTypes.NETWORK_ERROR && data.response) {
+              console.error("[HLS NETWORK ERROR] Status:", data.response.code, "URL:", data.url);
+            }
+            
             if (!data.fatal) return;
 
             switch (data.type) {
               case Hls.ErrorTypes.NETWORK_ERROR:
-                hls.startLoad();
+                console.warn("[HLS] Tentando recuperação de erro de rede...");
+                // Retry agressivo para erros de rede (QUIC/HTTP3)
+                if (data.details === 'manifestLoadError' || data.details === 'fragLoadError') {
+                  console.log("[HLS] Retrying com delay de 1.5s...");
+                  setTimeout(() => {
+                    hls.startLoad();
+                  }, 1500);
+                } else {
+                  hls.startLoad();
+                }
                 break;
               case Hls.ErrorTypes.MEDIA_ERROR:
+                console.warn("[HLS] Recuperando erro de mídia...");
                 hls.recoverMediaError();
                 break;
               default:
+                console.error("[HLS] Erro fatal não recuperável:", data.details);
                 setHasError(true);
                 cleanupHls();
                 break;
             }
+          });
+
+          // Listener adicional para recuperação de manifesto fatal
+          hls.on(Hls.Events.MANIFEST_INCOMPATIBLE_CODECS_ERROR, () => {
+            console.error("[HLS] Erro fatal de codec incompatível");
+            setHasError(true);
+            cleanupHls();
           });
         })
         .catch(() => {

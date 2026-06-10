@@ -179,7 +179,7 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
             allowFullScreen
             mozAllowFullScreen
             webkitAllowFullScreen
-            allow="autoplay *; fullscreen *; encrypted-media *; screen-wake-lock"
+            allow="autoplay *; fullscreen *; encrypted-media *;"
             referrerPolicy="no-referrer"
             scrolling="no"
           />
