@@ -34,7 +34,6 @@ export default function PlayerModal({
   useEffect(() => {
     function onMessage(e: MessageEvent) {
       try {
-        if (!e.origin.includes('mgeb.top')) return;
         const data = e.data || {};
         console.log('[PlayerModal embed message]', e.origin, data);
         if (data && typeof data.currentTime === 'number') {
@@ -46,7 +45,7 @@ export default function PlayerModal({
     function saveNow() {
       try {
         if (iframeRef.current && iframeRef.current.contentWindow) {
-          iframeRef.current.contentWindow.postMessage({ type: 'requestTime' }, 'https://mgeb.top');
+          iframeRef.current.contentWindow.postMessage({ type: 'requestTime' }, '*');
         }
       } catch (e) {}
     }
@@ -115,7 +114,7 @@ export default function PlayerModal({
                 allowFullScreen
                 mozAllowFullScreen
                 webkitAllowFullScreen
-                allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+                allow="autoplay; fullscreen; encrypted-media; picture-in-picture; screen-wake-lock"
               />
             )}
           </div>

@@ -16,12 +16,89 @@ export default function XtreamPlayer({ title, posterPath, streamUrl }: XtreamPla
   const [hasError, setHasError] = useState(false);
   const [isStalled, setIsStalled] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const hlsRef = useRef<any>(null);
   const waitingTimerRef = useRef<number | null>(null);
   const restoredRef = useRef(false);
   const storageKey = `xtream-playback:${streamUrl}`;
 
   useEffect(() => {
     restoredRef.current = false;
+  }, [streamUrl, isPlaying]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !streamUrl || !isPlaying) return;
+
+    const isHlsSource = streamUrl.endsWith(".m3u8");
+    const canPlayNativeHls = video.canPlayType("application/vnd.apple.mpegurl") !== "";
+
+    const cleanupHls = () => {
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
+        hlsRef.current = null;
+      }
+    };
+
+    const loadSource = () => {
+      cleanupHls();
+      video.src = streamUrl;
+    };
+
+    if (isHlsSource && !canPlayNativeHls && typeof window !== "undefined") {
+      import("hls.js")
+        .then((module) => {
+          const Hls = module.default;
+          if (!Hls.isSupported()) {
+            loadSource();
+            return;
+          }
+
+          const hls = new Hls({
+            maxBufferLength: 30,
+            maxMaxBufferLength: 60,
+            fragLoadingMaxRetry: 6,
+            fragLoadingRetryDelay: 2000,
+            manifestLoadingMaxRetry: 6,
+            manifestLoadingRetryDelay: 2000,
+            levelLoadingRetryDelay: 2000,
+            enableWorker: true,
+            startFragPrefetch: true,
+          });
+
+          hlsRef.current = hls;
+          hls.attachMedia(video);
+          hls.on(Hls.Events.MEDIA_ATTACHED, () => {
+            hls.loadSource(streamUrl);
+          });
+
+          hls.on(Hls.Events.ERROR, (_event, data) => {
+            console.warn("[HLS] error", data.type, data.details, data.fatal);
+            if (!data.fatal) return;
+
+            switch (data.type) {
+              case Hls.ErrorTypes.NETWORK_ERROR:
+                hls.startLoad();
+                break;
+              case Hls.ErrorTypes.MEDIA_ERROR:
+                hls.recoverMediaError();
+                break;
+              default:
+                setHasError(true);
+                cleanupHls();
+                break;
+            }
+          });
+        })
+        .catch(() => {
+          loadSource();
+        });
+    } else {
+      loadSource();
+    }
+
+    return () => {
+      cleanupHls();
+    };
   }, [streamUrl, isPlaying]);
 
   const handleLoadedMetadata = () => {

@@ -106,7 +106,6 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
     // Listen for postMessage from embed that may report playback time
     function onMessage(e: MessageEvent) {
       try {
-        if (!e.origin.includes('mgeb.top')) return;
         const data = e.data || {};
         console.log('[OmniPlayer embed message]', e.origin, data);
         setEmbedResponded(true);
@@ -133,7 +132,7 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
           localStorage.setItem(storageKey, String(videoRef.current.currentTime || 0));
         }
         if (iframeRef.current && iframeRef.current.contentWindow) {
-          iframeRef.current.contentWindow.postMessage({ type: 'requestTime' }, 'https://mgeb.top');
+          iframeRef.current.contentWindow.postMessage({ type: 'requestTime' }, '*');
         }
       } catch (e) {}
     }
@@ -180,7 +179,7 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
             allowFullScreen
             mozAllowFullScreen
             webkitAllowFullScreen
-            allow="autoplay *; fullscreen *; encrypted-media *;"
+            allow="autoplay *; fullscreen *; encrypted-media *; screen-wake-lock"
             referrerPolicy="no-referrer"
             scrolling="no"
           />
