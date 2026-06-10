@@ -2,9 +2,9 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Play, Loader2, Maximize2, ExternalLink } from "lucide-react";
+import { Play, Loader2 } from "lucide-react";
 import { getImageUrl, getMediaDetails } from "@/lib/tmdb";
-import { Button } from "@/components/ui/button";
+import MegaPlayComponent from "@/components/lumina/MegaPlayComponent";
 
 interface OmniPlayerProps {
   tmdbId: string;
@@ -18,8 +18,6 @@ interface OmniPlayerProps {
 export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, title, backdropPath }: OmniPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const iframeRef = useRef<HTMLIFrameElement | null>(null);
-  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   // States for skip button logic
   const [episodeRuntimeSec, setEpisodeRuntimeSec] = useState<number | null>(null);
@@ -27,8 +25,6 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
   const [showSkip, setShowSkip] = useState(false);
   const [skipCountdown, setSkipCountdown] = useState<number>(0);
   const [seasonEpisodeCount, setSeasonEpisodeCount] = useState<number | null>(null);
-  const [iframeLoaded, setIframeLoaded] = useState(false);
-  const [embedResponded, setEmbedResponded] = useState(false);
   const [isStalled, setIsStalled] = useState(false);
 
   useEffect(() => {
@@ -43,12 +39,11 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
     setSkipCountdown(0);
   }, [season, episode]);
 
-  const playerUrl = type === "movie" 
-    ? `https://mgeb.top/embed/${tmdbId}#color:purple`
-    : `https://mgeb.top/embed/${tmdbId}/${season}/${episode}#color:purple`;
+  // Using local MegaPlayComponent with next/script for proper jQuery and module support
+  const videoUrl = `#mega-play-${type}-${tmdbId}-s${season}-e${episode}`;
 
   const storageKey = `playpos:${type}:${tmdbId}:s${season}:e${episode}`;
-  const showLoader = isPlaying && (!iframeLoaded || isStalled);
+  const showLoader = isPlaying && isStalled;
 
   // Fetch runtime and season info for TV shows
   useEffect(() => {
@@ -91,98 +86,25 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
   }, [isPlaying, episodeRuntimeSec, startTs]);
 
   // Try to restore saved position for native video
+  // Note: Position restoration would be handled by MegaPlayComponent if needed
   useEffect(() => {
-    const saved = typeof window !== 'undefined' ? localStorage.getItem(storageKey) : null;
-    if (saved && videoRef.current) {
-      const sec = Number(saved);
-      if (!isNaN(sec) && sec > 0) {
-        const setPos = () => {
-          try { videoRef.current!.currentTime = sec; } catch (e) {}
-        };
-        videoRef.current.addEventListener('loadedmetadata', setPos, { once: true });
-      }
-    }
-
-    // Listen for postMessage from embed that may report playback time
-    function onMessage(e: MessageEvent) {
-      try {
-        const data = e.data || {};
-        console.log('[OmniPlayer embed message]', e.origin, data);
-        setEmbedResponded(true);
-        if (data && typeof data.currentTime === 'number') {
-          localStorage.setItem(storageKey, String(data.currentTime));
-        }
-      } catch (err) {
-        // ignore
-      }
-    }
-
-    window.addEventListener('message', onMessage);
-
-    return () => {
-      window.removeEventListener('message', onMessage);
-    };
+    return () => {};
   }, [storageKey]);
-
-  // Periodically request time from iframe (will only work if embed supports messaging)
-  useEffect(() => {
-    function saveNow() {
-      try {
-        if (videoRef.current) {
-          localStorage.setItem(storageKey, String(videoRef.current.currentTime || 0));
-        }
-        if (iframeRef.current && iframeRef.current.contentWindow) {
-          iframeRef.current.contentWindow.postMessage({ type: 'requestTime' }, '*');
-        }
-      } catch (e) {}
-    }
-
-    const interval = setInterval(() => {
-      saveNow();
-    }, 1000);
-
-    function onVisibility() {
-      if (document.visibilityState === 'hidden') saveNow();
-    }
-
-    window.addEventListener('beforeunload', saveNow);
-    document.addEventListener('visibilitychange', onVisibility);
-
-    return () => {
-      clearInterval(interval);
-      window.removeEventListener('beforeunload', saveNow);
-      document.removeEventListener('visibilitychange', onVisibility);
-    };
-  }, [storageKey]);
-
-  useEffect(() => {
-    if (!isPlaying || !iframeLoaded) return;
-    // Keep embed stall detection logic active but do not display a reload prompt.
-    if (embedResponded) return;
-    const stallTimer = setTimeout(() => {
-      // no UI action needed here
-    }, 20000);
-    return () => clearTimeout(stallTimer);
-  }, [isPlaying, iframeLoaded, embedResponded]);
 
   return (
     <div className="space-y-6">
       <div className="relative aspect-video w-full bg-black rounded-[2.5rem] overflow-hidden group shadow-2xl shadow-primary/20 border border-white/5">
         <div className="w-full h-full bg-black relative">
-          {/* Iframe always mounted to avoid remounts that reset playback */}
-          <iframe
-            key={playerUrl}
-            ref={iframeRef}
-            src={playerUrl}
-            onLoad={() => setIframeLoaded(true)}
-            className={`absolute inset-0 w-full h-full border-none z-10 transition-opacity duration-300 ${isPlaying ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
-            allowFullScreen
-            mozAllowFullScreen
-            webkitAllowFullScreen
-            allow="autoplay *; fullscreen *; encrypted-media *;"
-            referrerPolicy="no-referrer"
-            scrolling="no"
-          />
+          {/* Local MegaPlayComponent with corrected jQuery and type="module" loading */}
+          {isPlaying ? (
+            <div className="absolute inset-0 w-full h-full z-10">
+              <MegaPlayComponent 
+                videoUrl={videoUrl}
+                autoplay={true}
+                controls={true}
+              />
+            </div>
+          ) : null}
 
 
           {/* Poster + play button overlay (shown when not playing) */}
@@ -247,25 +169,15 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
 
         <div className="absolute bottom-6 left-6 pointer-events-none z-20">
           <div className="px-4 py-1.5 bg-black/60 backdrop-blur-md rounded-xl border border-white/10 text-[10px] font-bold tracking-[0.2em] text-primary uppercase">
-            Player MegaEmbed
+            Player Local - MegaPlay
           </div>
         </div>
       </div>
 
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-4 rounded-3xl bg-card border border-white/5">
         <p className="text-xs text-muted-foreground font-medium text-center md:text-left">
-          Se o player MegaEmbed mostrar erro de "Sandbox", é por causa das restrições do ambiente de visualização. <br className="hidden md:block" />
-          Nesse caso, use o botão ao lado para assistir em uma aba limpa.
+          Este player usa o componente local MegaPlayComponent com jQuery e suporte a type="module". Se houver problemas de vídeo, verifique se o link HLS está configurado corretamente no serviço.
         </p>
-        <Button 
-          onClick={() => window.open(playerUrl, '_blank')}
-          variant="secondary"
-          className="h-12 px-6 rounded-xl font-bold shadow-lg shadow-secondary/10 shrink-0"
-        >
-          <Maximize2 className="mr-2" size={18} />
-          Abrir em Nova Aba
-          <ExternalLink className="ml-2 opacity-50" size={14} />
-        </Button>
       </div>
     </div>
   );
