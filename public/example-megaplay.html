@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LuminaStream - Player MegaPlay Corrigido</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f0f0f; color: #fff; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    .player-wrapper { aspect-ratio: 16/9; background: #1a1a1a; border-radius: 8px; overflow: hidden; }
+    video { width: 100%; height: 100%; }
+    h1 { margin-bottom: 20px; font-size: 24px; }
+    .error { background: #ff4444; padding: 15px; border-radius: 4px; margin-bottom: 20px; display: none; }
+    .success { background: #44ff44; color: #000; padding: 15px; border-radius: 4px; margin-bottom: 20px; display: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎬 LuminaStream - Player Corrigido</h1>
+    
+    <div class="error" id="error-msg"></div>
+    <div class="success" id="success-msg">✅ Todos os scripts carregados com sucesso!</div>
+    
+    <div class="player-wrapper" id="player-container">
+      <video id="video-player" controls preload="metadata">
+        <source src="https://commondatastorage.googleapis.com/gtv-videos-library/sample/BigBuckBunny.mp4" type="video/mp4">
+        Seu navegador não suporta o elemento video.
+      </video>
+    </div>
+  </div>
+
+  <!-- 
+    ========================================
+    SOLUÇÃO 1: jQuery CDN ANTES do megaplay.js
+    ========================================
+    jQuery DEVE estar ANTES para evitar:
+    ReferenceError: $ is not defined
+  -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYQABXQ=" crossorigin="anonymous"></script>
+  
+  <!-- Verificar se jQuery carregou -->
+  <script>
+    if (typeof $ !== 'undefined') {
+      console.log('✅ jQuery carregado com sucesso!');
+      document.getElementById('success-msg').style.display = 'block';
+    } else {
+      console.error('❌ jQuery não foi carregado!');
+      document.getElementById('error-msg').textContent = '❌ Erro: jQuery não foi carregado';
+      document.getElementById('error-msg').style.display = 'block';
+    }
+  </script>
+
+  <!-- 
+    ========================================
+    SOLUÇÃO 2: megaplay.js com type="module"
+    ========================================
+    type="module" permite usar import.meta
+    Evita: Cannot use 'import.meta' outside a module
+  -->
+  <script type="module">
+    /**
+     * Exemplo de megaplay.js como módulo
+     * Agora pode usar import.meta sem erros
+     */
+
+    // ✅ Isso agora funciona dentro de type="module"
+    console.log('📦 Ambiente:', import.meta.url);
+    console.log('🔧 Diretório do módulo:', new URL('.', import.meta.url).href);
+
+    // ✅ jQuery pode ser usado normalmente
+    if (typeof $ !== 'undefined') {
+      console.log('✅ jQuery disponível dentro do módulo');
+      $('body').on('ready', () => {
+        console.log('✅ Document ready com jQuery');
+      });
+    }
+
+    // Exemplo de funcionalidade do player
+    class MegaPlay {
+      constructor(containerId) {
+        this.container = document.getElementById(containerId);
+        this.player = this.container?.querySelector('video');
+        this.init();
+      }
+
+      init() {
+        if (!this.player) {
+          console.error('Player não encontrado');
+          return;
+        }
+        console.log('✅ MegaPlay inicializado');
+        this.setupListeners();
+      }
+
+      setupListeners() {
+        this.player.addEventListener('play', () => console.log('▶️ Reproduzindo'));
+        this.player.addEventListener('pause', () => console.log('⏸️ Pausado'));
+        this.player.addEventListener('error', () => console.error('❌ Erro na reprodução'));
+      }
+
+      play() {
+        this.player?.play();
+      }
+
+      pause() {
+        this.player?.pause();
+      }
+    }
+
+    // ✅ Exportar para uso global (opcional)
+    window.MegaPlay = MegaPlay;
+
+    // Inicializar ao carregar
+    document.addEventListener('DOMContentLoaded', () => {
+      const player = new MegaPlay('player-container');
+      window.megaplayInstance = player;
+      console.log('✅ MegaPlay player pronto');
+    });
+  </script>
+
+  <!-- 
+    ========================================
+    SOLUÇÃO 3: Alternativa com arquivo externo
+    ========================================
+    Se você quiser usar um arquivo megaplay.js externo:
+    
+    1. Crie um arquivo: public/js/megaplay.js
+    2. Use type="module" como abaixo
+    3. Certifique-se de que jQuery já foi carregado acima
+  -->
+  <!-- <script type="module" src="/js/megaplay.js"></script> -->
+
+  <!-- 
+    ========================================
+    BOAS PRÁTICAS
+    ========================================
+    ✅ Order importante:
+    1. jQuery CDN (sem type="module")
+    2. Outros scripts não-módulos
+    3. Seu código como type="module" (último)
+    
+    ✅ Verificações de erro:
+    - typeof $ !== 'undefined' para jQuery
+    - import.meta dentro de type="module"
+    - Sempre adicionar error handlers
+  -->
+</body>
+</html>
