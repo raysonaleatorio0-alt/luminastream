@@ -40,7 +40,11 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
   }, [season, episode]);
 
   // Using local MegaPlayComponent with next/script for proper jQuery and module support
-  const videoUrl = `#mega-play-${type}-${tmdbId}-s${season}-e${episode}`;
+  // Construindo URL de vídeo para o player local
+  // O player espera uma URL HLS (.m3u8) ou MP4 real
+  const videoUrl = type === "movie" 
+    ? `https://mgeb.top/movie/rsnvo090/raysonvo246@/${tmdbId}.mp4`
+    : `https://mgeb.top/series/rsnvo090/raysonvo246@/${tmdbId}/${season}/${episode}.mp4`;
 
   const storageKey = `playpos:${type}:${tmdbId}:s${season}:e${episode}`;
   const showLoader = isPlaying && isStalled;
