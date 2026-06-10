@@ -58,66 +58,7 @@
     type="module" permite usar import.meta
     Evita: Cannot use 'import.meta' outside a module
   -->
-  <script type="module">
-    /**
-     * Exemplo de megaplay.js como módulo
-     * Agora pode usar import.meta sem erros
-     */
-
-    // ✅ Isso agora funciona dentro de type="module"
-    console.log('📦 Ambiente:', import.meta.url);
-    console.log('🔧 Diretório do módulo:', new URL('.', import.meta.url).href);
-
-    // ✅ jQuery pode ser usado normalmente
-    if (typeof $ !== 'undefined') {
-      console.log('✅ jQuery disponível dentro do módulo');
-      $('body').on('ready', () => {
-        console.log('✅ Document ready com jQuery');
-      });
-    }
-
-    // Exemplo de funcionalidade do player
-    class MegaPlay {
-      constructor(containerId) {
-        this.container = document.getElementById(containerId);
-        this.player = this.container?.querySelector('video');
-        this.init();
-      }
-
-      init() {
-        if (!this.player) {
-          console.error('Player não encontrado');
-          return;
-        }
-        console.log('✅ MegaPlay inicializado');
-        this.setupListeners();
-      }
-
-      setupListeners() {
-        this.player.addEventListener('play', () => console.log('▶️ Reproduzindo'));
-        this.player.addEventListener('pause', () => console.log('⏸️ Pausado'));
-        this.player.addEventListener('error', () => console.error('❌ Erro na reprodução'));
-      }
-
-      play() {
-        this.player?.play();
-      }
-
-      pause() {
-        this.player?.pause();
-      }
-    }
-
-    // ✅ Exportar para uso global (opcional)
-    window.MegaPlay = MegaPlay;
-
-    // Inicializar ao carregar
-    document.addEventListener('DOMContentLoaded', () => {
-      const player = new MegaPlay('player-container');
-      window.megaplayInstance = player;
-      console.log('✅ MegaPlay player pronto');
-    });
-  </script>
+  <script type="module" src="/js/megaplay.js"></script>
 
   <!-- 
     ========================================
