@@ -102,11 +102,10 @@ export default function OmniPlayer({ tmdbId, type, season = 1, episode = 1, titl
             <iframe
               src={playerUrl}
               allowFullScreen
-              webkitallowfullscreen="true"
-              mozallowfullscreen="true"
+              webkitallowfullscreen
+              mozallowfullscreen
               allow="autoplay; encrypted-media; screen-wake-lock"
-              sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
-              style={{ width: '100%', height: '100%', border: 'none', position: 'absolute', inset: 0 }}
+              style={{ width: '100%', height: '100%', border: 'none' }}
               title={`${title} ${type === 'tv' ? `- T${season}E${episode}` : ''}`}
             />
           ) : null}
